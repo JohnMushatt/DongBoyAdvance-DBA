@@ -3,7 +3,7 @@
 //
 
 #include "cpu.h"
-#include "logger.h"
+
 void init_cpu() {
     init_general_registers();
     init_conditional_flags();

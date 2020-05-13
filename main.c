@@ -15,10 +15,11 @@ int main(int argc, char **argv) {
         }
     }
     init_cpu();
+    Logical_MOV(0,12);
+    Logical_MOV(1,12);
+    Arithmetic_CMP(0,1,false);
     while(1) {
-        Logical_MOV(0,12);
-        Logical_MOV(1,12);
-        Arithmetic_CMP(0,1,false);
+
     }
     return 0;
 }

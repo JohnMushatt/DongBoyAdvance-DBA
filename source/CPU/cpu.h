@@ -7,7 +7,7 @@
 
 #include <unistd.h>
 #include <stdbool.h>
-
+#include "logger.h"
 bool debug;
 typedef uint64_t ARM_DWORD;
 typedef uint32_t ARM_WORD;

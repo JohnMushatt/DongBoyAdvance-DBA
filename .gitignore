@@ -3,3 +3,7 @@ gdkGBA/
 inefficient_first/
 real_first/
 .idea/
+ncurses/
+roms/Emerald
+DongBoyAdvance_Debugger/.idea
+DongBoyAdvance_Debugger/cmake-build-debug

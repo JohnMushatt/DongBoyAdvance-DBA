@@ -1,0 +1,14 @@
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+project(Startup_DBA VERSION 1.0.0 LANGUAGES C)
+set(CMAKE_BUILD_TYPE DEBUG)
+set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/app)
+set(HELP_MSG "Email john.mushatt@gmail.com and hope he can fix it")
+message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
+
+
+set(EXE_NAME ${PROJECT_NAME}_v${PROJECT_VERSION})
+set(CMAKE_C_STANDARD  11)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Werror")
+
+add_executable(${EXE_NAME} main.c )

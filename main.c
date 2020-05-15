@@ -8,8 +8,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
-
-
 #include "rom_parser.h"
 /**
  * Debugging code
@@ -21,7 +19,7 @@ int main(int argc, char **argv) {
 #ifdef _DEBUG_MODE
     Process_Info *process_info = (Process_Info *) malloc(sizeof(Process_Info));
     process_info->process_id = getpid();
-#endif
+
     if (argc > 1) {
         if (strcmp(argv[argc-1], "-d") == 0) {
             debug = true;
@@ -30,10 +28,10 @@ int main(int argc, char **argv) {
         }
     }
     if (debug) {
-#ifdef _DEBUG_MODE
+
         begin_debug(process_info);
-#endif
     }
+#endif
 
     Rom_Info *rom_info = (Rom_Info *) malloc(sizeof(Rom_Info));
     read_rom(rom_info);

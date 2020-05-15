@@ -58,8 +58,13 @@ if (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
 else ()
     message(STATUS "Release Mode")
 endif ()
+if ( ${CYGWIN})
+    message(STATUS "Cygwin found, setting definition to start cygserver!")
+    ADD_DEFINITIONS(-D_CYGWIN)
+else ()
+    message(STATUS "Cygwin not found!")
 
-
+endif ()
 add_executable(${EXE_NAME} main.c ${DBA_SRC})
 target_include_directories(${EXE_NAME} PRIVATE ${LOG_SRC} ${CPU_SRC} ${ROM_SRC})
 

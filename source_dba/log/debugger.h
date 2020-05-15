@@ -23,12 +23,19 @@
 #include <string.h>
 #include <unistd.h>
 #include <curses.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+
+key_t key;
 typedef struct _process_info {
     pid_t process_id;
     pid_t debug_id;
 } Process_Info;
 
 void begin_debug(Process_Info *arg);
-
+#ifdef _CYGWIN
+void start_cygserver (void) __attribute__ ((constructor));
+#endif
 #endif //DONGBOYADVANCE_DEBUGGER_H
 #endif

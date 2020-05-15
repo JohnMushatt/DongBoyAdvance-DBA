@@ -31,10 +31,9 @@ void start_cygserver() {
         execvp(cygserver_args[0], cygserver_args);
     }
      */
-    int8_t seconds = 1;
-    printf("Sleeping for %d seconds...\n", seconds);
-    sleep(seconds);
-    printf("Resuming...\n");
+
+
+
     /**
      * Attempt to generate a unique shm key for IPC via shared memory access
      */

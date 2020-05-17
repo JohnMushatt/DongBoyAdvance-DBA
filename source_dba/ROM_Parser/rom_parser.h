@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <cpu.h>
+
+#define max_rom_sz  32 * 1024 * 1024
 
 typedef struct _rom_info {
     char *name;
@@ -14,6 +17,7 @@ typedef struct _rom_info {
     uint32_t rom_mask;
     char *file_path;
     FILE *file;
+    ARM_BYTE *rom;
 } Rom_Info;
 uint8_t *rom_data_ptr;
 

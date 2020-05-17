@@ -31,16 +31,7 @@ void init_conditional_flags() {
 }
 
 void init_current_program_status_register() {
-    cpsr.Mode_bits = 0x3;
-    if (cpsr.status != 0x3) {
-        Error_Message err = {"cpsr bits not set correctly", 0x100};
-        log_err(err);
-    }
-    cpsr.N_Sign_flag = 1;
-    if (cpsr.status >> 31 != 1) {
-        Error_Message err = {"cpsr bits not set correctly", 0x100};
-        log_err(err);
-    }
+
     cpsr_clear();
 }
 

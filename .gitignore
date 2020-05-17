@@ -7,5 +7,4 @@ ncurses/
 roms/Emerald
 DongBoyAdvance_Debugger/.idea
 DongBoyAdvance_Debugger/cmake-build-debug
-app/
 shared_memory/

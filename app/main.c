@@ -12,20 +12,22 @@ int main(void) {
     char *cygserver_args[4];
     cygserver_args[0] = "run";
     cygserver_args[1] = "mintty";
-    //cygserver_args[2] = "C:\\cygwin64\\Cygwin.bat";
-    cygserver_args[2] = "/usr/sbin/cygserver.exe";
+    cygserver_args[2] = "/usr/sbin/cygserver.exe -S";
     cygserver_args[3] = NULL;
     pid_t fd = fork();
     if (fd == 0) {
         execvp(cygserver_args[0], cygserver_args);
     }
-    char *dba_args[4];
-    dba_args[0] = "run";
-    dba_args[1] = "mintty";
-    dba_args[2] = "C:\\Users\\johnm\\Desktop\\DongBoyAdvance-DBA\\cmake-build-debug\\DongBoyAdvance_v1.0.0.exe -d";
-    dba_args[3] = NULL;
+    char *real_run[4];
+    real_run[0] = "run";
+    real_run[1] = "mintty";
+    real_run[2] = "/usr/sbin/cygserver.exe ";
+    real_run[3] = NULL;
     fd = fork();
     if (fd == 0) {
-        execvp(dba_args[0], dba_args);
+        execvp(real_run[0], real_run);
     }
+    printf("Successfully starter cygserver!\n");
+    //int status = waitpid(fd,&status,0);
+    return 0;
 }

@@ -1,3 +1,2 @@
 todo:
-  keyword :['@TODO','@todo']
   label : ['Critical','CMake']

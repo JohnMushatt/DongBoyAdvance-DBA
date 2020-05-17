@@ -15,7 +15,6 @@
 #endif
 
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -33,9 +32,9 @@ typedef struct _process_info {
     pid_t debug_id;
 } Process_Info;
 
-void begin_debug(Process_Info *arg);
-#ifdef _CYGWIN
-void start_cygserver (void) __attribute__ ((constructor));
-#endif
+void *begin_debug(void *arg);
+
+void init_shared_mem(void);
+
 #endif //DONGBOYADVANCE_DEBUGGER_H
 #endif

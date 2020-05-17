@@ -13,32 +13,30 @@
  * Debugging code
  */
 #ifdef _DEBUG_MODE
+
 #include "debugger.h"
+//#include "cpu
 #endif
+
 int main(int argc, char **argv) {
+#ifdef _BUILD_WITH_TESTING
+
+#include "master_test.c"
+#endif
 #ifdef _DEBUG_MODE
     Process_Info *process_info = (Process_Info *) malloc(sizeof(Process_Info));
     process_info->process_id = getpid();
+    pthread_t pid;
 
-    if (argc > 1) {
-        if (strcmp(argv[argc-1], "-d") == 0) {
-            debug = true;
-        } else {
-            debug = false;
-        }
-    }
-    if (debug) {
 
-        begin_debug(process_info);
-    }
+    pthread_create(&pid, NULL, &begin_debug, (void *) process_info);
+
 #endif
 
     Rom_Info *rom_info = (Rom_Info *) malloc(sizeof(Rom_Info));
-    read_rom(rom_info);
+    // read_rom(rom_info);
     init_cpu();
-    Logical_MOV(0, 12);
-    Logical_MOV(1, 12);
-    Arithmetic_CMP(0, 1, false);
+
     while (1) {
 
     }

@@ -9,6 +9,12 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include "rom_parser.h"
+
+#ifdef _BUILD_WITH_TESTING
+
+#include "Master_Test/master_test.h"
+
+#endif
 /**
  * Debugging code
  */
@@ -19,10 +25,14 @@
 #endif
 
 int main(int argc, char **argv) {
+
+
 #ifdef _BUILD_WITH_TESTING
 
-#include "master_test.c"
+    master_test_suite();
 #endif
+
+
 #ifdef _DEBUG_MODE
     Process_Info *process_info = (Process_Info *) malloc(sizeof(Process_Info));
     process_info->process_id = getpid();

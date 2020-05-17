@@ -11,9 +11,9 @@ set(CPU_SRC ${CMAKE_CURRENT_SOURCE_DIR}/CPU)
 set(LOG_SRC ${CMAKE_CURRENT_SOURCE_DIR}/log)
 #Set Rom parsing source
 set(ROM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/ROM_Parser)
-
+#Set Test source
 set(TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Tests)
-
+set(TEST_CPU_SRC ${TEST_SRC}/CPU)
 set(EXE_NAME ${PROJECT_NAME}_v${PROJECT_VERSION})
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Werror -lpthread -lncurses")

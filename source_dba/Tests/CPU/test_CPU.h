@@ -7,10 +7,7 @@
 #define DONGBOYADVANCE_TEST_CPU_H
 #include "cpu.h"
 #include "instruction_set.h"
-/**
- * Master test suite function, calls all sub-tests
- * TODO: Allow calling of individual sub-tests
- */
-void master_test_suite(void);
+void test_cpu_master(void);
+void test_cpu_cpsr(void);
 #endif //DONGBOYADVANCE_TEST_CPU_H
 #endif //_BUILD_WITH_TESTING

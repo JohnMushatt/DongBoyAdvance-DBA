@@ -7,6 +7,7 @@
 /**
  * @todo Fix this include issue
  * @body For some reason this thing just isn't working with CMake
+ * @label Critical
  */
 //#include "test_CPU.h"
 /**

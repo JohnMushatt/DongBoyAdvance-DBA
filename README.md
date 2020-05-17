@@ -1,4 +1,4 @@
-# __Release v1.0.0__
+# __Release v1.0.1__
 #### Doesn't really do much other that implement at skeleton version of the ARM CPU present in the GBA as well as the beginnings of a prototype debugger.
 
 ### Tasks:

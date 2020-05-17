@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
-project(DongBoyAdvance VERSION 1.0.0 LANGUAGES C)
+project(DongBoyAdvance VERSION 1.0.1 LANGUAGES C)
 
 set(CMAKE_BUILD_TYPE DEBUG)
 set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source_dba)

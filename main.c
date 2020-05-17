@@ -23,7 +23,10 @@
 #include "debugger.h"
 //#include "cpu
 #endif
-
+/**
+ * @todo This is a test of Github Actions
+ * @body This is a test of Github Actions @Critical, @CMake, @Cleanup
+ */
 int main(int argc, char **argv) {
 
 

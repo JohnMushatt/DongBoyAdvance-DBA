@@ -37,6 +37,8 @@ void Arithmetic_SUB(ARM_WORD reg_d, ARM_WORD reg_n, ARM_WORD op2) {
 
 /**
  * reg_d - op2, set corresponding arithmetic flag
+ * @todo Verifiy CMP works correctly
+ * @body Same as title, @Critical
  */
 void Arithmetic_CMP(ARM_WORD reg_d, ARM_WORD op2, bool immediate) {
     ARM_WORD cmp_result;

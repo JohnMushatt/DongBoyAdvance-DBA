@@ -1,0 +1,14 @@
+name: "Set Issue Label"
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: Naturalclar/issue-action@v1.0.0
+        with:
+          keywords: '["CMake", "build"]'
+          labels: '["CMake/Build"]'
+          github-token: "${{ secrets.GITHUB_TOKEN }}"

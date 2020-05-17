@@ -3,7 +3,9 @@
 //
 
 #ifdef _BUILD_WITH_TESTING
-#endif // _BUILD_WITH_TESTING
+#include "master_test.h"
 void master_test_suite(void) {
-    //test_cpu_master();
+    test_cpu_master();
 }
+
+#endif // _BUILD_WITH_TESTING

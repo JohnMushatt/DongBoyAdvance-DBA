@@ -86,3 +86,46 @@ void Arithmetic_CMP(ARM_WORD reg_d, ARM_WORD op2, bool immediate) {
     update_condition_flags(flags);
 }
 
+
+void Arithmetic_AND_Immediate(ARM_WORD dest,ARM_WORD reg_d, ARM_WORD immediate) {
+    if(dest==reg_d) {
+        gpr.registers[dest].data &= immediate;
+    }
+    else {
+        gpr.registers[dest].data = gpr.registers[reg_d].data & immediate;
+    }
+}
+/**
+ * @todo Add carry flag update to this instruction
+ * @body Not exactly sure, but the instruction should at least set the CPSR.Carry to whatever the current carry
+ * flag is.
+ * Labels: @Improvement
+ */
+void Arithmetic_ANDS_Immediate(ARM_WORD dest,ARM_WORD reg_d, ARM_WORD immediate) {
+    /**
+     * Normal AND part
+     */
+    ARM_WORD result = gpr.registers[reg_d].data & immediate;
+    gpr.registers[dest].data=result;
+    /**
+     * S part, set flags
+     */
+    cpsr.N_Sign_flag = result >> 31;
+    cpsr.Z_Zero_flag= result==0;
+    cpsr.C_Carry_flag= cpsr.C_Carry_flag;
+}
+
+void Arithmetic_AND_Register(ARM_WORD dest, ARM_WORD reg_d) {
+    ARM_WORD result = gpr.registers[dest].data & gpr.registers[reg_d].data;
+}
+
+void Arithmetic_ANDS_Register(ARM_WORD dest, ARM_WORD reg_d) {
+    ARM_WORD  result;
+    /**
+     * S part, set flags
+     */
+    cpsr.N_Sign_flag = result >> 31;
+    cpsr.Z_Zero_flag= result==0;
+    cpsr.C_Carry_flag= cpsr.C_Carry_flag;
+}
+

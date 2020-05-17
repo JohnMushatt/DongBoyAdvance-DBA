@@ -5,7 +5,11 @@
 #ifndef DONGBOYADVANCE_LOGGER_H
 #define DONGBOYADVANCE_LOGGER_H
 
-
+#include "cpu.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <cpu.h>
 #include <unistd.h>
 
 /**

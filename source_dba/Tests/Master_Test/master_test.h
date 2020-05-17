@@ -4,12 +4,8 @@
 #ifdef _BUILD_WITH_TESTING
 #ifndef DONGBOYADVANCE_MASTER_TEST_H
 #define DONGBOYADVANCE_MASTER_TEST_H
-/**
- * @todo Fix this include issue
- * @body For some reason this thing just isn't working with CMake
- * @label Critical
- */
-//#include "test_CPU.h"
+
+#include "test_CPU.h"
 /**
  * Master test suite function, calls all sub-tests
  * @todo Allow calling of individual sub-tests
@@ -17,5 +13,13 @@
  * can be called instead of calling the master suite
  */
 void master_test_suite(void);
+
+/**
+ * Setup testing variables i.e. passing, failing, overall
+ * @todo Setup testing variables i.e. passing, failing, overall
+ * @body Testing framework needs some global/status variables that represent how many tests passed/failed,
+ * what tests passed/failed, etc.
+ * Labels: @Testing
+ */
 #endif //DONGBOYADVANCE_MASTER_TEST_H
 #endif //_BUILD_WITH_TESTING

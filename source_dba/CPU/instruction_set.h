@@ -25,6 +25,10 @@ void Logical_MVN(ARM_WORD reg_d, ARM_WORD op2);
  * Arithmetic Instructions
  */
  //TODO VERY IMPORTANT, THESE INSTRUCTIONS NEED TO UPDATE NZCV FLAGS!!
+ /**
+  * @todo Verify that add, addc, sub, and cmp correctly update flags
+  * @body Verify that the above functions correctly modify status flags
+  */
 void Arithmetic_ADD(ARM_WORD reg_d, ARM_WORD reg_n, ARM_WORD op2);
 
 void Arithmetic_ADDC(ARM_WORD reg_d, ARM_WORD reg_n, ARM_WORD op2);

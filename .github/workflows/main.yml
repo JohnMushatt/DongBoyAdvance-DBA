@@ -20,3 +20,11 @@ jobs:
           keywords: '["@Critical"]'
           labels: '["Critical"]'
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+  Cleanup:
+    runs-on: windows-latest
+    steps:
+      - uses: Naturalclar/issue-action@v1.0.0
+        with:
+          keywords: '["@Cleanup"]'
+          labels: '["Cleanup"]'
+          github-token: "${{ secrets.GITHUB_TOKEN }}"

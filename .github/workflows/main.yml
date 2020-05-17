@@ -4,11 +4,19 @@ on:
     types: [opened]
 
 jobs:
-  test:
+  CMake/Build:
     runs-on: windows-latest
     steps:
       - uses: Naturalclar/issue-action@v1.0.0
         with:
-          keywords: '["CMake", "build"]'
+          keywords: '["@CMake", "@build"]'
           labels: '["CMake/Build"]'
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+  Critical:
+    runs-on: windows-latest
+    steps:
+      - uses: Naturalclar/issue-action@v1.0.0
+        with:
+          keywords: '["@Critical"]'
+          labels: '["Critical"]'
           github-token: "${{ secrets.GITHUB_TOKEN }}"

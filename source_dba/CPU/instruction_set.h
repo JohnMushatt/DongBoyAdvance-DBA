@@ -34,7 +34,11 @@ void Arithmetic_ADD(ARM_WORD reg_d, ARM_WORD reg_n, ARM_WORD op2);
 void Arithmetic_ADDC(ARM_WORD reg_d, ARM_WORD reg_n, ARM_WORD op2);
 
 void Arithmetic_SUB(ARM_WORD reg_d, ARM_WORD reg_n, ARM_WORD op2);
-
+/**
+ * @todo Check to see if CMP correctly sets overflow and carry flags
+ * @body Make sure CMP correctly sets the properly flags when there is
+ * a overflow/carry result
+ */
 void Arithmetic_CMP(ARM_WORD reg_d, ARM_WORD op2, bool immediate);
 
 

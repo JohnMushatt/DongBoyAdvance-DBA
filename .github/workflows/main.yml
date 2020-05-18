@@ -28,3 +28,19 @@ jobs:
           keywords: '["@Cleanup"]'
           labels: '["Cleanup"]'
           github-token: "${{ secrets.GITHUB_TOKEN }}"
+  Testing:
+    runs-on: windows-latest
+    steps:
+      - uses: Naturalclar/issue-action@v1.0.0
+        with:
+          keywords: '["@Testing"]'
+          labels: '["Testing"]'
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+  Feature:
+    runs-on: windows-latest
+    steps:
+      - uses: Naturalclar/issue-action@v1.0.0
+        with:
+          keywords: '["@Feature","@Improvement"]'
+          labels: '["Feature/Improvement"]'
+          github-token: "${{ secrets.GITHUB_TOKEN }}"

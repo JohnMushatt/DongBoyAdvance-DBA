@@ -21,7 +21,7 @@ void init_general_registers() {
 }
 
 void gpr_clear() {
-    for (ARM_WORD i = 0; i < 13; i++) {
+    for (ARM_U_WORD i = 0; i < 13; i++) {
         gpr.registers[i].data = 0x0;
     }
 }
@@ -43,7 +43,7 @@ void init_exception_vector_table() {
     /**
      * Reset vector
      */
-    exception_vector_table.Reset.address = (ARM_WORD) exception_vector_table.base + 0x00;
+    exception_vector_table.Reset.address = (ARM_U_WORD) exception_vector_table.base + 0x00;
     exception_vector_table.Reset.interrupt_flags.I = set_1;
     exception_vector_table.Reset.interrupt_flags.F = set_1;
     exception_vector_table.Reset.priority = 1;
@@ -51,7 +51,7 @@ void init_exception_vector_table() {
     /**
      * Undefined Instruction
      */
-    exception_vector_table.Undefined_Instruction.address = (ARM_WORD) exception_vector_table.base + 0x04;
+    exception_vector_table.Undefined_Instruction.address = (ARM_U_WORD) exception_vector_table.base + 0x04;
     exception_vector_table.Undefined_Instruction.interrupt_flags.I = set_1;
     exception_vector_table.Undefined_Instruction.interrupt_flags.F = no_change;
     exception_vector_table.Undefined_Instruction.priority = 7;
@@ -59,7 +59,7 @@ void init_exception_vector_table() {
     /**
      * Software Interrupt (SWI)
      */
-    exception_vector_table.Software_Interrupt_SWI.address = (ARM_WORD) exception_vector_table.base + 0x08;
+    exception_vector_table.Software_Interrupt_SWI.address = (ARM_U_WORD) exception_vector_table.base + 0x08;
     exception_vector_table.Software_Interrupt_SWI.interrupt_flags.I = set_1;
     exception_vector_table.Software_Interrupt_SWI.interrupt_flags.F = no_change;
     exception_vector_table.Software_Interrupt_SWI.priority = 6;
@@ -67,7 +67,7 @@ void init_exception_vector_table() {
     /**
      * Prefect Abort
      */
-    exception_vector_table.Prefect_Abort.address = (ARM_WORD) exception_vector_table.base + 0x0c;
+    exception_vector_table.Prefect_Abort.address = (ARM_U_WORD) exception_vector_table.base + 0x0c;
     exception_vector_table.Prefect_Abort.interrupt_flags.I = set_1;
     exception_vector_table.Prefect_Abort.interrupt_flags.F = no_change;
     exception_vector_table.Prefect_Abort.priority = 5;
@@ -75,7 +75,7 @@ void init_exception_vector_table() {
     /**
      * Data Abort
      */
-    exception_vector_table.Data_Abort.address = (ARM_WORD) exception_vector_table.base + 0x10;
+    exception_vector_table.Data_Abort.address = (ARM_U_WORD) exception_vector_table.base + 0x10;
     exception_vector_table.Data_Abort.interrupt_flags.I = set_1;
     exception_vector_table.Data_Abort.interrupt_flags.F = no_change;
     exception_vector_table.Data_Abort.priority = 2;
@@ -83,7 +83,7 @@ void init_exception_vector_table() {
     /**
      * Address Exceeds 26-bit (Most likely legacy support)
      */
-    exception_vector_table.Address_Exceeds_26bit.address = (ARM_WORD) exception_vector_table.base + 0x14;
+    exception_vector_table.Address_Exceeds_26bit.address = (ARM_U_WORD) exception_vector_table.base + 0x14;
     exception_vector_table.Address_Exceeds_26bit.interrupt_flags.I = set_1;
     exception_vector_table.Address_Exceeds_26bit.interrupt_flags.F = no_change;
     exception_vector_table.Address_Exceeds_26bit.priority = 0;
@@ -91,7 +91,7 @@ void init_exception_vector_table() {
     /**
      * Normal Interrupt (IQR)
      */
-    exception_vector_table.Normal_Interrupt_IQR.address = (ARM_WORD) exception_vector_table.base + 0x18;
+    exception_vector_table.Normal_Interrupt_IQR.address = (ARM_U_WORD) exception_vector_table.base + 0x18;
     exception_vector_table.Normal_Interrupt_IQR.interrupt_flags.I = set_1;
     exception_vector_table.Normal_Interrupt_IQR.interrupt_flags.F = no_change;
     exception_vector_table.Normal_Interrupt_IQR.priority = 4;
@@ -99,7 +99,7 @@ void init_exception_vector_table() {
     /**
      * Fast Interrupt (FIQ)
      */
-    exception_vector_table.Fast_Interrupt_FIQ.address = (ARM_WORD) exception_vector_table.base + 0x1c;
+    exception_vector_table.Fast_Interrupt_FIQ.address = (ARM_U_WORD) exception_vector_table.base + 0x1c;
     exception_vector_table.Fast_Interrupt_FIQ.interrupt_flags.I = set_1;
     exception_vector_table.Fast_Interrupt_FIQ.interrupt_flags.F = set_1;
     exception_vector_table.Fast_Interrupt_FIQ.priority = 3;

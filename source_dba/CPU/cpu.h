@@ -8,18 +8,25 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "logger.h"
+
 bool debug;
-typedef uint64_t ARM_DWORD;
-typedef uint32_t ARM_WORD;
-typedef uint16_t ARM_HWORD;
-typedef uint8_t ARM_BYTE;
+typedef uint64_t ARM_U_DWORD;
+typedef uint32_t ARM_U_WORD;
+typedef uint16_t ARM_U_HWORD;
+typedef uint8_t ARM_U_BYTE;
+
+typedef int64_t ARM_S_DWORD;
+typedef int32_t ARM_S_WORD;
+typedef int16_t ARM_S_HWORD;
+typedef int8_t ARM_S_BYTE;
+
 /**
  * Important Memory Address Definitions
  */
 #define EXCEPTION_BASE (ARMWORD) 0x00000000
 
 typedef struct _general_purpose_register {
-    ARM_WORD data;
+    ARM_U_WORD data;
 } General_Purpose_Register;
 /** 
  * Struct containing the 13 general purpose registers R0-R12
@@ -77,28 +84,27 @@ typedef struct _general_purpose_registers {
 
  */
 typedef union _conditional_flags {
-    ARM_WORD flags;
+    ARM_U_WORD flags;
 
     struct {
-        ARM_WORD EQ : 1;
-        ARM_WORD NE : 1;
-        ARM_WORD CS_HS : 1;
-        ARM_WORD CC_LO : 1;
-        ARM_WORD MI : 1;
-        ARM_WORD PL : 1;
-        ARM_WORD VS : 1;
-        ARM_WORD VC : 1;
-        ARM_WORD HI : 1;
-        ARM_WORD LS : 1;
-        ARM_WORD GE : 1;
-        ARM_WORD LT : 1;
-        ARM_WORD GT : 1;
-        ARM_WORD LE : 1;
-        ARM_WORD AL : 1;
-        ARM_WORD NV : 1;
+        ARM_U_WORD EQ : 1;
+        ARM_U_WORD NE : 1;
+        ARM_U_WORD CS_HS : 1;
+        ARM_U_WORD CC_LO : 1;
+        ARM_U_WORD MI : 1;
+        ARM_U_WORD PL : 1;
+        ARM_U_WORD VS : 1;
+        ARM_U_WORD VC : 1;
+        ARM_U_WORD HI : 1;
+        ARM_U_WORD LS : 1;
+        ARM_U_WORD GE : 1;
+        ARM_U_WORD LT : 1;
+        ARM_U_WORD GT : 1;
+        ARM_U_WORD LE : 1;
+        ARM_U_WORD AL : 1;
+        ARM_U_WORD NV : 1;
     };
 } Conditional_Flags;
-
 
 
 typedef struct _stack_pointer {
@@ -127,21 +133,21 @@ typedef struct _program_counter {
   4-0   M4-M0 - Mode Bits   (See below)                               ;/
  */
 typedef union _cpsr {
-    ARM_WORD status;
+    ARM_U_WORD status;
 
     struct {
-        ARM_WORD Mode_bits : 4;
-        ARM_WORD T_state_bit : 1;
-        ARM_WORD F_FIQ_disable :1;
-        ARM_WORD I_IQR_disable : 1;
-        ARM_WORD Reserved : 20;
+        ARM_U_WORD Mode_bits : 4;
+        ARM_U_WORD T_state_bit : 1;
+        ARM_U_WORD F_FIQ_disable :1;
+        ARM_U_WORD I_IQR_disable : 1;
+        ARM_U_WORD Reserved : 20;
         /**
         * Bit 27: Sticky Overflow Flag (Q) - ARMv5TE and ARMv5TExP and up only
         * Used by QADD, QSUB, QDADD, QDSUB, SMLAxy, and SMLAWy only.
         * These opcodes set the Q-flag in case of overflows, but leave it unchanged
         * otherwise. The Q-flag can be tested/reset by MSR/MRS opcodes only.
         */
-        ARM_WORD Q_Sticky_overflow : 1;
+        ARM_U_WORD Q_Sticky_overflow : 1;
         /**
          * Bit 31-28: Condition Code Flags (N,Z,C,V)
          * These bits reflect results of logical or arithmetic instructions.
@@ -150,10 +156,10 @@ typedef union _cpsr {
          * In ARM state, all instructions can be executed conditionally depending on the settings of the flags,
          * such like MOVEQ (Move if Z=1). While In THUMB state, only Branch instructions (jumps) can be made conditionally.
          */
-        ARM_WORD V_Overflow_flag : 1;
-        ARM_WORD C_Carry_flag : 1;
-        ARM_WORD Z_Zero_flag : 1;
-        ARM_WORD N_Sign_flag : 1;
+        ARM_U_WORD V_Overflow_flag : 1;
+        ARM_U_WORD C_Carry_flag : 1;
+        ARM_U_WORD Z_Zero_flag : 1;
+        ARM_U_WORD N_Sign_flag : 1;
     };
 
 } CPSR;
@@ -194,8 +200,8 @@ typedef struct _interrupt_flags {
  * Actual exception with its location, priority, mode/entry/, and what interrupt generated it
  */
 typedef struct _exception_vector {
-    ARM_WORD address;
-    ARM_WORD priority;
+    ARM_U_WORD address;
+    ARM_U_WORD priority;
     Mode_on_Entry mode_on_entry;
     Interrupt_Flags interrupt_flags;
 } Exception_Vector;
@@ -222,7 +228,7 @@ typedef struct _exception_vector {
    which'd then redirect to the actual exception handlers address.
  */
 typedef struct _exception_vector_table {
-    ARM_WORD base;
+    ARM_U_WORD base;
     Exception_Vector Reset;
     Exception_Vector Undefined_Instruction;
     Exception_Vector Software_Interrupt_SWI;
@@ -243,7 +249,7 @@ void init_exception_vector_table();
  *
  ***********************************************/
 #define MAX_MEM  0x10000000
- ARM_WORD MEMORY[MAX_MEM];
+ARM_U_WORD MEMORY[MAX_MEM];
 /***********************************************
  * Registers begin
  *

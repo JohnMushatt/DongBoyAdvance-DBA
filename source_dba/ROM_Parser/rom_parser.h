@@ -17,7 +17,7 @@ typedef struct _rom_info {
     uint32_t rom_mask;
     char *file_path;
     FILE *file;
-    ARM_BYTE *rom;
+    ARM_U_BYTE *rom;
 } Rom_Info;
 uint8_t *rom_data_ptr;
 

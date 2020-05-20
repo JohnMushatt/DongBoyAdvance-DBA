@@ -21,6 +21,15 @@ typedef struct _error_message {
 } Error_Message;
 
 /**
+ * General Message struct
+ */
+typedef struct _general_message {
+    char *log;
+    int32_t code;
+    char *instruction_name;
+} General_Message;
+
+/**
  * Test logging function
  */
 void logger(const char *tag, const char *message);
@@ -37,6 +46,8 @@ void print_cond_flag();
 void print_cpsr();
 
 void log_err(Error_Message err);
+
+void log_msg(General_Message msg);
 
 void print_stack_pointer();
 

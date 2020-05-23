@@ -21,4 +21,4 @@ void test_Logical(void);
 void test_Jump(void);
 void test_Branch(void);
 #endif //DONGBOYADVANCE_TEST_INSTRUCTIONS_H
-#endif
+#endif //_BUILD_WITH_TESTING

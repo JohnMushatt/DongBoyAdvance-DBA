@@ -131,7 +131,11 @@ void Arithmetic_ANDS_Register(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD reg_
 
 //2nd operand is register-shifted register
 void Arithmetic_AND_Register_Shifted(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD reg_n_offset) {
-    ARM_U_WORD result = gpr.registers[reg_d].data & gpr.registers[reg_n].data + sizeof(ARM_U_WORD) * reg_n_offset;
+    ARM_U_WORD offset = sizeof(ARM_U_WORD) * reg_n_offset;
+    ARM_U_WORD array_start = gpr.registers[reg_n].data;
+    ARM_U_WORD element_address = array_start+offset;
+    ARM_U_WORD element = get_word(element_address);
+    ARM_U_WORD result = gpr.registers[reg_d].data & element;
 
     gpr.registers[dest].data=result;
 }

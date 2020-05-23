@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "logger.h"
+#include <stdarg.h>
 
 bool debug;
 typedef uint64_t ARM_U_DWORD;
@@ -87,22 +88,22 @@ typedef union _conditional_flags {
     ARM_U_WORD flags;
 
     struct {
-        ARM_U_WORD EQ : 1;
-        ARM_U_WORD NE : 1;
-        ARM_U_WORD CS_HS : 1;
-        ARM_U_WORD CC_LO : 1;
-        ARM_U_WORD MI : 1;
-        ARM_U_WORD PL : 1;
-        ARM_U_WORD VS : 1;
-        ARM_U_WORD VC : 1;
-        ARM_U_WORD HI : 1;
-        ARM_U_WORD LS : 1;
-        ARM_U_WORD GE : 1;
-        ARM_U_WORD LT : 1;
-        ARM_U_WORD GT : 1;
-        ARM_U_WORD LE : 1;
-        ARM_U_WORD AL : 1;
-        ARM_U_WORD NV : 1;
+        ARM_U_WORD EQ: 1;
+        ARM_U_WORD NE: 1;
+        ARM_U_WORD CS_HS: 1;
+        ARM_U_WORD CC_LO: 1;
+        ARM_U_WORD MI: 1;
+        ARM_U_WORD PL: 1;
+        ARM_U_WORD VS: 1;
+        ARM_U_WORD VC: 1;
+        ARM_U_WORD HI: 1;
+        ARM_U_WORD LS: 1;
+        ARM_U_WORD GE: 1;
+        ARM_U_WORD LT: 1;
+        ARM_U_WORD GT: 1;
+        ARM_U_WORD LE: 1;
+        ARM_U_WORD AL: 1;
+        ARM_U_WORD NV: 1;
     };
 } Conditional_Flags;
 
@@ -136,18 +137,18 @@ typedef union _cpsr {
     ARM_U_WORD status;
 
     struct {
-        ARM_U_WORD Mode_bits : 4;
-        ARM_U_WORD T_state_bit : 1;
-        ARM_U_WORD F_FIQ_disable :1;
-        ARM_U_WORD I_IQR_disable : 1;
-        ARM_U_WORD Reserved : 20;
+        ARM_U_WORD Mode_bits: 4;
+        ARM_U_WORD T_state_bit: 1;
+        ARM_U_WORD F_FIQ_disable: 1;
+        ARM_U_WORD I_IQR_disable: 1;
+        ARM_U_WORD Reserved: 20;
         /**
         * Bit 27: Sticky Overflow Flag (Q) - ARMv5TE and ARMv5TExP and up only
         * Used by QADD, QSUB, QDADD, QDSUB, SMLAxy, and SMLAWy only.
         * These opcodes set the Q-flag in case of overflows, but leave it unchanged
         * otherwise. The Q-flag can be tested/reset by MSR/MRS opcodes only.
         */
-        ARM_U_WORD Q_Sticky_overflow : 1;
+        ARM_U_WORD Q_Sticky_overflow: 1;
         /**
          * Bit 31-28: Condition Code Flags (N,Z,C,V)
          * These bits reflect results of logical or arithmetic instructions.
@@ -156,10 +157,10 @@ typedef union _cpsr {
          * In ARM state, all instructions can be executed conditionally depending on the settings of the flags,
          * such like MOVEQ (Move if Z=1). While In THUMB state, only Branch instructions (jumps) can be made conditionally.
          */
-        ARM_U_WORD V_Overflow_flag : 1;
-        ARM_U_WORD C_Carry_flag : 1;
-        ARM_U_WORD Z_Zero_flag : 1;
-        ARM_U_WORD N_Sign_flag : 1;
+        ARM_U_WORD V_Overflow_flag: 1;
+        ARM_U_WORD C_Carry_flag: 1;
+        ARM_U_WORD Z_Zero_flag: 1;
+        ARM_U_WORD N_Sign_flag: 1;
     };
 
 } CPSR;
@@ -245,11 +246,26 @@ Exception_Vector_Table exception_vector_table;
  */
 void init_exception_vector_table();
 /***********************************************
- * Temporary Memory TODO IMPLEMENT ACUTAL MEMORY
+ * Temporary Memory TODO IMPLEMENT ACTUAL MEMORY
  *
  ***********************************************/
+
 #define MAX_MEM  0x10000000
-ARM_U_WORD MEMORY[MAX_MEM];
+ARM_U_BYTE MEMORY[MAX_MEM];
+
+typedef enum {
+    BYTE, HALF_WORD, WORD, DOUBLE_WORD
+} Write_Mode;
+
+typedef Write_Mode Read_Mode;
+
+void set_memory_range_random(ARM_U_WORD starting_address, ARM_U_WORD size, Write_Mode mode);
+
+void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode);
+
+void view_address(ARM_U_WORD address, Read_Mode mode);
+
+ARM_U_WORD get_word(ARM_U_WORD address);
 /***********************************************
  * Registers begin
  *
@@ -286,6 +302,8 @@ void init_current_program_status_register();
 * Register specific functions
 *
 ***********************************************/
+void zero_reg(int reg, ...);
+void set_reg(ARM_U_WORD reg, ARM_U_WORD value);
 
 /**
  * CPSR Functions

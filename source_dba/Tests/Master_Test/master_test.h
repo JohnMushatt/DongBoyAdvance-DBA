@@ -6,6 +6,9 @@
 #define DONGBOYADVANCE_MASTER_TEST_H
 
 #include "test_CPU.h"
+#include "test_Instructions.h"
+
+
 /**
  * Master test suite function, calls all sub-tests
  * @todo Allow calling of individual sub-tests
@@ -13,7 +16,7 @@
  * can be called instead of calling the master suite
  */
 void master_test_suite(void);
-
+void display_results(void);
 /**
  * Setup testing variables i.e. passing, failing, overall
  * @todo Setup testing variables i.e. passing, failing, overall
@@ -21,5 +24,8 @@ void master_test_suite(void);
  * what tests passed/failed, etc.
  * Labels: @Testing
  */
+uint64_t total_tests;
+uint64_t passed_tests;
+uint64_t failed_tests;
 #endif //DONGBOYADVANCE_MASTER_TEST_H
 #endif //_BUILD_WITH_TESTING

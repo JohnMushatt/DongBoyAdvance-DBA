@@ -97,3 +97,9 @@ void logger(const char *tag, const char *message) {
     time(&now);
     printf("%s [%s]: %s\n", ctime(&now), tag, message);
 }
+
+void log_msg(General_Message msg) {
+    time_t now;
+    time(&now);
+    printf("Instruction: %s @ time: %s\n%s",msg.instruction_name,ctime(&now),msg.log);
+}

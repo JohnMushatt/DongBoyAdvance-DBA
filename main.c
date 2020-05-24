@@ -19,7 +19,12 @@
  * Debugging code
  */
 #ifdef _DEBUG_MODE
-
+void print_binary(ARM_U_WORD opcode) {
+    for(ARM_U_WORD i = 1 << 31; i > 0; i = i/2) {
+        (opcode&i) ? printf("1 "): printf("0 ");
+    }
+    printf("\n");
+}
 #include "debugger.h"
 //#include "cpu
 #endif
@@ -43,12 +48,17 @@ int main(int argc, char **argv) {
 
 #endif
 
-    Rom_Info *rom_info = (Rom_Info *) malloc(sizeof(Rom_Info));
-    // read_rom(rom_info);
+    read_rom();
     init_cpu();
-
-    while (1) {
-
+    bool done =false;
+    ARM_U_WORD opcode;
+    char op_code_in_binary[33];
+    while(!done) {
+        opcode = fetch_opcode();
+        print_binary(opcode);
+        inspect_opcode(opcode);
     }
+
+
     return 0;
 }

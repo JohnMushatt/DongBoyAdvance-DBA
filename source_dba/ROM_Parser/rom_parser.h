@@ -17,10 +17,12 @@ typedef struct _rom_info {
     uint32_t rom_mask;
     char *file_path;
     FILE *file;
-    ARM_BYTE *rom;
+    uint8_t *rom;
+    ARM_U_WORD current_opcode;
 } Rom_Info;
-uint8_t *rom_data_ptr;
+Rom_Info *rom_info;
 
-void read_rom(Rom_Info *rom_info);
+void read_rom();
+ARM_U_WORD fetch_opcode();
 uint32_t to_pow2(uint32_t val);
 #endif //DONGBOYADVANCE_ROM_PARSER_H

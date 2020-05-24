@@ -133,17 +133,17 @@ void Arithmetic_ANDS_Register(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD reg_
 void Arithmetic_AND_Register_Shifted(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD reg_n_offset) {
     ARM_U_WORD offset = sizeof(ARM_U_WORD) * reg_n_offset;
     ARM_U_WORD array_start = gpr.registers[reg_n].data;
-    ARM_U_WORD element_address = array_start+offset;
+    ARM_U_WORD element_address = array_start + offset;
     ARM_U_WORD element = get_word(element_address);
     ARM_U_WORD result = gpr.registers[reg_d].data & element;
 
-    gpr.registers[dest].data=result;
+    gpr.registers[dest].data = result;
 }
 
 void Arithmetic_ANDS_Register_Shifted(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD reg_n_offset) {
     ARM_U_WORD result = gpr.registers[reg_d].data & gpr.registers[reg_n].data + sizeof(ARM_U_WORD) * reg_n_offset;
 
-    gpr.registers[dest].data=result;
+    gpr.registers[dest].data = result;
     /**
      * S part, set flags
      */
@@ -151,6 +151,7 @@ void Arithmetic_ANDS_Register_Shifted(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_W
     cpsr.Z_Zero_flag = result == 0;
     cpsr.C_Carry_flag = cpsr.C_Carry_flag;
 }
+
 bool check_condition(Branch_Condition condition) {
     switch (condition) {
         case EQ:
@@ -195,15 +196,66 @@ void Jump_Branch(ARM_U_WORD cond, ARM_U_WORD label) {
     //sprintf(msg.instruction_name,"JUMP BRANCH | COND->%s | LABEL->[%0x8x]",);
     ARM_S_WORD branch_addr = label - pc.r15.data;
 
-    if(check_condition(cond)) {
+    if (check_condition(cond)) {
         pc.r15.data = (ARM_U_WORD) branch_addr;
         //msg.
     }
-    /**
-     * TODO add failed branch condition message
-     */
+        /**
+         * TODO add failed branch condition message
+         */
     else {
 
     }
     log_msg(msg);
+}
+void software_interrupt(void) {
+
+}
+
+void inspect_opcode(ARM_U_WORD opcode) {
+
+    ARM_U_WORD R_MASK = BIT4;
+    ARM_U_WORD SHIFT_TYPE_MASK = BIT5 | BIT6;
+    ARM_U_WORD RESERVED_MASK = BIT7;
+
+    /**
+     * ALU DATA PROCESSING OPCODE CHECK
+     */
+    /*
+   ARM_U_WORD CONDITION = opcode & (BIT31 | BIT30 | BIT29 | BIT28)); //Describes the condition
+   ARM_U_WORD DP_CHECK_MASK = (opcode & (BIT27 | BIT26)) >> 26;
+   ARM_U_WORD I_MASK = (opcode & (BIT25)) >> 25;
+   ARM_U_WORD OPCODE_MASK = (opcode & (BIT24 | BIT23 | BIT22 | BIT21)) >> 21;
+   ARM_U_WORD S_MASK = (opcode & (BIT20)) >> 20;
+   ARM_U_WORD Rn_MASK = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16;
+   ARM_U_WORD Rd_MASK =(opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
+     */
+    ARM_U_WORD o_type = (opcode & (BIT27 | BIT26 | BIT25 | BIT24)) >> 24;
+
+    switch (o_type) {
+        //Software interrupt
+        case 0xf:
+            /**
+             * @todo Implement software interrupt
+             * @body This is just a stub as of now, but it needs to be implemented @Critical
+             */
+            software_interrupt();
+            break;
+        case 0xe:
+            if((opcode & (BIT4)) >> 4) {
+                //Coprocessor register operation
+            }
+            else {
+                //Coprocessor data operation
+            }
+            break;
+        default:
+            switch (o_type >> 1) {
+                case 0x3:
+                    //Coprocessor data transfer
+                    break;
+            }
+    }
+
+
 }

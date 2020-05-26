@@ -208,11 +208,43 @@ void Jump_Branch(ARM_U_WORD cond, ARM_U_WORD label) {
     }
     log_msg(msg);
 }
-void software_interrupt(void) {
 
+void software_interrupt(ARM_U_WORD opcode) {
+    printf("Software Interrupt occurs here\n");
 }
 
-void inspect_opcode(ARM_U_WORD opcode) {
+void CoRegTrans(ARM_U_WORD opcode) {
+    printf("Coprocessor register operation occurs here\n");
+}
+
+void CoDataOp(ARM_U_WORD opcode) {
+    printf("Coprocessor data operation occurs here\n");
+}
+
+void CoDataTrans(ARM_U_WORD opcode) {
+    printf("CoDataTrans occurs here\n");
+}
+
+void Branch(ARM_U_WORD opcode) {
+    printf("Branch occurs here\n");
+}
+void TransReg10(ARM_U_WORD opcode) {
+    printf("TransReg10 occurs here\n");
+}
+void TransReg9(ARM_U_WORD opcode) {
+    printf("TransReg9 occurs here\n");
+}
+void BlockTrans(ARM_U_WORD opcode) {
+    printf("BlockTrans occurs here\n");
+}
+void undefined_opcode(ARM_U_WORD opcode) {
+    printf("Undefined opcode occurs here\n");
+}
+void unknown_opcode(ARM_U_WORD opcode) {
+    printf("Completely unknown opcode @[0x%08x]\n",opcode);
+}
+
+void decode(ARM_U_WORD opcode) {
 
     ARM_U_WORD R_MASK = BIT4;
     ARM_U_WORD SHIFT_TYPE_MASK = BIT5 | BIT6;
@@ -231,29 +263,72 @@ void inspect_opcode(ARM_U_WORD opcode) {
    ARM_U_WORD Rd_MASK =(opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
      */
     ARM_U_WORD o_type = (opcode & (BIT27 | BIT26 | BIT25 | BIT24)) >> 24;
-
+    /**
+     * @todo Rework this jump table to be cleaner/concise
+     * @body This section requires @Cleanup to make it more concise
+     */
     switch (o_type) {
-        //Software interrupt
+        //SWI if 1111
         case 0xf:
             /**
              * @todo Implement software interrupt
-             * @body This is just a stub as of now, but it needs to be implemented @Critical
+             * @body This is just a stub as of now, but it needs to be implemented @Feature
              */
-            software_interrupt();
+            software_interrupt(opcode);
             break;
+            // CoRegTrans/CoDataOp if 1110
         case 0xe:
-            if((opcode & (BIT4)) >> 4) {
+            if ((opcode & (BIT4)) >> 4) {
                 //Coprocessor register operation
-            }
-            else {
+                CoRegTrans(opcode);
+            } else {
                 //Coprocessor data operation
+                CoDataOp(opcode);
             }
             break;
+            //The rest of the opcodes markers are only 3 bits wide for this section
         default:
             switch (o_type >> 1) {
-                case 0x3:
+                //CoDataTrans if 110
+                case 0x6:
                     //Coprocessor data transfer
+                    CoDataTrans(opcode);
                     break;
+                case 0x5:
+                    Branch(opcode);
+                    //Branch
+                    break;
+                case 0x4:
+                    BlockTrans(opcode);
+                    //Block data transfer
+                    break;
+                case 0x3:
+                    /**
+                     * @todo Test whether this check can actually distinguish undefined opcode vs single data transfer opcode
+                     * @body The @Opcode formats for undefined and single data transfer are very similar and I'm not exactly sure
+                     * how to distinguish either
+                     */
+                    if ((o_type & BIT4) >> 4) {
+                        undefined_opcode(opcode);
+                    } else {
+                        TransReg9(opcode);
+                    }
+                    break;
+                case 0x1:
+                    break;
+                case 0x0:
+                    //TransImm10
+                    if (((o_type & BIT23) >> 23) && ((o_type & BIT7) >> 8 && ((o_type & BIT4) >> 4))) {
+                        TransImm10(opcode);
+                    }
+                        //TransReg10
+                    else if (!((o_type & BIT23) >> 23) && ((o_type & (BIT8 | BIT9 | BIT10 | BIT11)) >> 8 != 0x0) &&
+                             ((o_type & BIT7) >> 8) && ((o_type & BIT4) >> 4)) {
+                        TransReg10(opcode);
+                    }
+                    break;
+                default:
+                    unknown_opcode(opcode);
             }
     }
 

@@ -55,10 +55,10 @@ int main(int argc, char **argv) {
     char op_code_in_binary[33];
     while(!done) {
         opcode = fetch_opcode();
-        print_binary(opcode);
-        inspect_opcode(opcode);
+        //print_binary(opcode);
+        decode(opcode);
     }
-
+    destroy_rom();
 
     return 0;
 }

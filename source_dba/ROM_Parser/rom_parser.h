@@ -25,4 +25,5 @@ Rom_Info *rom_info;
 void read_rom();
 ARM_U_WORD fetch_opcode();
 uint32_t to_pow2(uint32_t val);
+void destroy_rom();
 #endif //DONGBOYADVANCE_ROM_PARSER_H

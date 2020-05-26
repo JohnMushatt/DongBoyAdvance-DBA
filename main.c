@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
     bool done =false;
     ARM_U_WORD opcode;
     char op_code_in_binary[33];
-    while(!done) {
+    while(rom_info->current_opcode < rom_info->rom_size) {
         opcode = fetch_opcode();
         //print_binary(opcode);
         decode(opcode);

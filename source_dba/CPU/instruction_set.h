@@ -105,7 +105,7 @@ typedef enum {
     EQ, NE, CS, HS, CC, LO, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, AL
 } Branch_Condition;
 
-void inspect_opcode(ARM_U_WORD opcode);
+void decode(ARM_U_WORD opcode);
 
 void Logical_MOV(ARM_U_WORD reg_d, ARM_U_WORD op2);
 
@@ -147,8 +147,24 @@ void Jump_Branch(Branch_Condition condition, ARM_U_WORD label);
 bool check_condition(Branch_Condition condition);
 
 
-void software_interrupt(void);
-
+void software_interrupt(ARM_U_WORD opcode);
+void CoRegTrans(ARM_U_WORD opcode);
+void CoDataOp(ARM_U_WORD opcode);
+void CoDataTrans(ARM_U_WORD opcode);
+void Branch(ARM_U_WORD opcode);
+void BranchExchange(ARM_U_WORD opcode);
+void BlockTrans(ARM_U_WORD opcode);
+void TransReg9(ARM_U_WORD opcode);
+void TransImm9(ARM_U_WORD opcode);
+void TransImm10(ARM_U_WORD opcode);
+void TransReg10(ARM_U_WORD opcode);
+void TransSwp12(ARM_U_WORD opcode);
+void MulLong(ARM_U_WORD opcode);
+void Multiply(ARM_U_WORD opcode);
+void PSR_Reg(ARM_U_WORD opcode);
+void PSR_Imm(ARM_U_WORD opcode);
+void unknown_opcode(ARM_U_WORD opcode);
+void undefined_opcode(ARM_U_WORD opcode);
 /**
  * @todo Check to see if CMP correctly sets overflow and carry flags
  * @body Make sure CMP correctly sets the properly flags when there is

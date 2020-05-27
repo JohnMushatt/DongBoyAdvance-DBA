@@ -208,52 +208,252 @@ void Jump_Branch(ARM_U_WORD cond, ARM_U_WORD label) {
     }
     log_msg(msg);
 }
-void software_interrupt(void) {
+
+/**
+ * @todo Implement software interrupt opcode
+ * @body Implement SWI for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void software_interrupt(ARM_U_WORD opcode) {
+    printf("Software Interrupt occurs here\n");
+}
+
+/**
+ * @todo Implement Co-register transfer
+ * @body Implement CoRegTrans for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void CoRegTrans(ARM_U_WORD opcode) {
+    printf("Coprocessor register operation occurs here\n");
+}
+
+/**
+ * @todo Implement Co-data operation opcode
+ * @body Implement CoDataOp for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void CoDataOp(ARM_U_WORD opcode) {
+    printf("Coprocessor data operation occurs here\n");
+}
+
+/**
+ * @todo Implement Co-Data transfer opcode
+ * @body Implement CoDataTrans for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void CoDataTrans(ARM_U_WORD opcode) {
+    printf("CoDataTrans occurs here\n");
+}
+
+/**
+ * @todo Implement Branch opcode
+ * @body Implement Branch for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void Branch(ARM_U_WORD opcode) {
+    printf("Branch occurs here\n");
+}
+
+/**
+ * @todo Implement Branch Exchange opcode
+ * @body Implement BranchExchange for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void BranchExchange(ARM_U_WORD opcode) {
+    printf("BranchExchange occurs here\n");
 
 }
 
-void inspect_opcode(ARM_U_WORD opcode) {
+/**
+ * @todo Implement Transfer Swap12 transfer opcode
+ * @body Implement TransSwp12 for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void TransSwp12(ARM_U_WORD opcode) {
+    printf("TransSwp12 occurs here\n");
+}
 
-    ARM_U_WORD R_MASK = BIT4;
-    ARM_U_WORD SHIFT_TYPE_MASK = BIT5 | BIT6;
-    ARM_U_WORD RESERVED_MASK = BIT7;
+/**
+ * @todo Implement Transfer Register 10 opcode
+ * @body Implement TransReg10 for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void TransReg10(ARM_U_WORD opcode) {
+    printf("TransReg10 occurs here\n");
+}
 
-    /**
-     * ALU DATA PROCESSING OPCODE CHECK
-     */
-    /*
-   ARM_U_WORD CONDITION = opcode & (BIT31 | BIT30 | BIT29 | BIT28)); //Describes the condition
-   ARM_U_WORD DP_CHECK_MASK = (opcode & (BIT27 | BIT26)) >> 26;
-   ARM_U_WORD I_MASK = (opcode & (BIT25)) >> 25;
-   ARM_U_WORD OPCODE_MASK = (opcode & (BIT24 | BIT23 | BIT22 | BIT21)) >> 21;
-   ARM_U_WORD S_MASK = (opcode & (BIT20)) >> 20;
-   ARM_U_WORD Rn_MASK = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16;
-   ARM_U_WORD Rd_MASK =(opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
-     */
+/**
+ * @todo Implement Transfer Immediate 10 opcode
+ * @body Implement TransImm10 for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void TransImm10(ARM_U_WORD opcode) {
+    printf("TransImm10 occurs here\n");
+}
+
+/**
+ * @todo Implement Transfer Register 9 opcode
+ * @body Implement TransReg9 for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void TransReg9(ARM_U_WORD opcode) {
+    printf("TransReg9 occurs here\n");
+}
+
+/**
+ * @todo Implement Block Transfer opcode
+ * @body Implement BlockTrans for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void BlockTrans(ARM_U_WORD opcode) {
+    printf("BlockTrans occurs here\n");
+}
+
+/**
+ * @todo Implement Multiply Long opcode
+ * @body Implement MulLong for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void MulLong(ARM_U_WORD opcode) {
+    printf("MulLong occurs here\n");
+}
+
+/**
+ * @todo Implement Multiply opcode
+ * @body Implement Multiply for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void Multiply(ARM_U_WORD opcode) {
+    printf("Multiply occurs here\n");
+}
+/**
+ * @todo Implement PSR Register opcode
+ * @body Implement PSR Reg for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void PSR_Reg(ARM_U_WORD opcode) {
+    printf("PSR_Reg occurs here\n");
+}
+/**
+ * @todo Implement PSR Immediate opcode
+ * @body Implement PSR Imm for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void PSR_Imm(ARM_U_WORD opcode) {
+    printf("PSR_Imm occurs here\n");
+
+}
+void undefined_opcode(ARM_U_WORD opcode) {
+    printf("Undefined opcode occurs here\n");
+}
+
+void unknown_opcode(ARM_U_WORD opcode) {
+    printf("Completely unknown opcode @[0x%08x]\n", opcode);
+}
+
+void decode(ARM_U_WORD opcode) {
+
+
     ARM_U_WORD o_type = (opcode & (BIT27 | BIT26 | BIT25 | BIT24)) >> 24;
-
+    /**
+     * @todo Rework this jump table to be cleaner/concise
+     * @body This section requires @Cleanup to make it more concise
+     */
     switch (o_type) {
-        //Software interrupt
+        //SWI if 1111
         case 0xf:
             /**
              * @todo Implement software interrupt
-             * @body This is just a stub as of now, but it needs to be implemented @Critical
+             * @body This is just a stub as of now, but it needs to be implemented @Feature
              */
-            software_interrupt();
+            software_interrupt(opcode);
             break;
+            // CoRegTrans/CoDataOp if 1110
         case 0xe:
-            if((opcode & (BIT4)) >> 4) {
+            if ((opcode & (BIT4)) >> 4) {
                 //Coprocessor register operation
-            }
-            else {
+                CoRegTrans(opcode);
+            } else {
                 //Coprocessor data operation
+                CoDataOp(opcode);
             }
             break;
+            //The rest of the opcodes markers are only 3 bits wide for this section
         default:
-            switch (o_type >> 1) {
-                case 0x3:
+            o_type = o_type >> 1;
+            switch (o_type) {
+                //CoDataTrans if 110
+                case 0x6:
                     //Coprocessor data transfer
+                    CoDataTrans(opcode);
                     break;
+                case 0x5:
+                    Branch(opcode);
+                    //Branch
+                    break;
+                case 0x4:
+                    BlockTrans(opcode);
+                    //Block data transfer
+                    break;
+                case 0x3:
+                    /**
+                     * @todo Test whether this check can actually distinguish undefined opcode vs single data transfer opcode
+                     * @body The @Opcode formats for undefined and single data transfer are very similar and I'm not exactly sure
+                     * how to distinguish either
+                     */
+                    if ((o_type & BIT4) >> 4) {
+                        undefined_opcode(opcode);
+                    } else {
+                        TransReg9(opcode);
+                    }
+                    break;
+                case 0x1:
+                    break;
+                case 0x0:
+                    //TransImm10
+                    if (((opcode & BIT22) >> 22) && ((opcode & BIT7) >> 7 && ((opcode & BIT4) >> 4))) {
+                        TransImm10(opcode);
+                    }
+
+                    //TransReg10
+                    else if (!((opcode & BIT22) >> 22) && ((opcode & (BIT8 | BIT9 | BIT10 | BIT11)) >> 8 == 0x0) &&
+                             ((opcode & BIT7) >> 7) && ((opcode & BIT4) >> 4)) {
+                        TransReg10(opcode);
+                    }
+
+                    //TransSwp12
+                    else if (((opcode & (BIT24 | BIT25)) >> 24 == 0x2) && ((opcode & (BIT21 | BIT22)) >> 21 == 0x0) &&
+                             ((opcode & (BIT4 | BIT5 | BIT6 | BIT7 | BIT8 | BIT9 | BIT10 | BIT11)) >> 4 == 0x9)) {
+                        TransSwp12(opcode);
+                    }
+                    //MulLong
+                    else if (((opcode & (BIT23 | BIT24)) >> 23 == 0x1) &&
+                               ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
+                        MulLong(opcode);
+                    }
+                    //Multiply
+                    else if (((opcode & (BIT22 | BIT23 | BIT24)) >> 22 == 0x0) &&
+                               ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
+                        Multiply(opcode);
+                    }
+                    //Branch Exchange
+                    else if ((opcode & (0x012FFF10)) == 0x012FFF10) {
+                        BranchExchange(opcode);
+                    }
+                    else if((opcode & BIT24) == BIT24) {
+                        PSR_Reg(opcode);
+                    }
+                    else if((opcode & 0x03200000) ==0x03200000) {
+                        PSR_Imm(opcode);
+                    }
+                    else {
+
+                        unknown_opcode(opcode);
+                    }
+                    break;
+
+                default:
+                    unknown_opcode(opcode);
             }
     }
 

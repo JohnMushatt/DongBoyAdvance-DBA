@@ -19,12 +19,22 @@
  * Debugging code
  */
 #ifdef _DEBUG_MODE
+
 void print_binary(ARM_U_WORD opcode) {
-    for(ARM_U_WORD i = 1 << 31; i > 0; i = i/2) {
-        (opcode&i) ? printf("1 "): printf("0 ");
+    for (ARM_U_WORD i = 1 << 31; i > 0; i = i / 2) {
+        (opcode & i) ? printf("1  ") : printf("0  ");
+    }
+    printf("\n");
+    for (ARM_S_WORD i = 31; i >= 0; i--) {
+        if (i < 10) {
+            printf("%d  ", i);
+        } else {
+            printf("%d ", i);
+        }
     }
     printf("\n");
 }
+
 #include "debugger.h"
 //#include "cpu
 #endif
@@ -50,12 +60,12 @@ int main(int argc, char **argv) {
 
     read_rom();
     init_cpu();
-    bool done =false;
+    bool done = false;
     ARM_U_WORD opcode;
     char op_code_in_binary[33];
-    while(rom_info->current_opcode < rom_info->rom_size) {
+    while (rom_info->current_opcode < rom_info->rom_size) {
         opcode = fetch_opcode();
-        //print_binary(opcode);
+        print_binary(opcode);
         decode(opcode);
     }
     destroy_rom();

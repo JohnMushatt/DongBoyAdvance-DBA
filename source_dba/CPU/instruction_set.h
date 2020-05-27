@@ -152,12 +152,17 @@ void CoRegTrans(ARM_U_WORD opcode);
 void CoDataOp(ARM_U_WORD opcode);
 void CoDataTrans(ARM_U_WORD opcode);
 void Branch(ARM_U_WORD opcode);
+void BranchExchange(ARM_U_WORD opcode);
 void BlockTrans(ARM_U_WORD opcode);
 void TransReg9(ARM_U_WORD opcode);
 void TransImm9(ARM_U_WORD opcode);
 void TransImm10(ARM_U_WORD opcode);
 void TransReg10(ARM_U_WORD opcode);
 void TransSwp12(ARM_U_WORD opcode);
+void MulLong(ARM_U_WORD opcode);
+void Multiply(ARM_U_WORD opcode);
+void PSR_Reg(ARM_U_WORD opcode);
+void PSR_Imm(ARM_U_WORD opcode);
 void unknown_opcode(ARM_U_WORD opcode);
 void undefined_opcode(ARM_U_WORD opcode);
 /**

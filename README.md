@@ -14,6 +14,7 @@
     - [1/21] Properly parse each opcode for arguments and flags
 - [10%] Cleanup and improve CMake process to use Conan (potentially not necessary given that the project doesn't have many 3rd party libraries)
 ###Table of tasks, intended release version of task, and progress
+
 | Task | Release Version | Progress |
 | ---- | ----------------|----------|
 | Implement the opcodes listed in ARM documentation + GBATEK| v1.0.3| 20%|

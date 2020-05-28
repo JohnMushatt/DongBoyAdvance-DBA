@@ -20,20 +20,7 @@
  */
 #ifdef _DEBUG_MODE
 
-void print_binary(ARM_U_WORD opcode) {
-    for (ARM_U_WORD i = 1 << 31; i > 0; i = i / 2) {
-        (opcode & i) ? printf("1  ") : printf("0  ");
-    }
-    printf("\n");
-    for (ARM_S_WORD i = 31; i >= 0; i--) {
-        if (i < 10) {
-            printf("%d  ", i);
-        } else {
-            printf("%d ", i);
-        }
-    }
-    printf("\n");
-}
+
 
 #include "debugger.h"
 #endif

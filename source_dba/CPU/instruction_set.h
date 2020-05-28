@@ -42,7 +42,6 @@
 #define BIT31 1 << 31
 
 
-
 typedef enum {
     ADD, SUB, CMP
 } Instruction_Type;
@@ -114,6 +113,10 @@ void Logical_MVN(ARM_U_WORD reg_d, ARM_U_WORD op2);
 /**
  * Arithmetic Instructions
  */
+ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount);
+
+ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate);
+
 //TODO VERY IMPORTANT, THESE INSTRUCTIONS NEED TO UPDATE NZCV FLAGS!!
 /**
  * @todo Verify that add, addc, sub, and cmp correctly update flags
@@ -148,27 +151,47 @@ bool check_condition(Branch_Condition condition);
 
 
 void software_interrupt(ARM_U_WORD opcode);
+
 void CoRegTrans(ARM_U_WORD opcode);
+
 void CoDataOp(ARM_U_WORD opcode);
+
 void CoDataTrans(ARM_U_WORD opcode);
+
 void Branch(ARM_U_WORD opcode);
+
 void BranchExchange(ARM_U_WORD opcode);
+
 void BlockTrans(ARM_U_WORD opcode);
+
 void TransReg9(ARM_U_WORD opcode);
+
 void TransImm9(ARM_U_WORD opcode);
+
 void TransImm10(ARM_U_WORD opcode);
+
 void TransReg10(ARM_U_WORD opcode);
+
 void TransSwp12(ARM_U_WORD opcode);
+
 void MulLong(ARM_U_WORD opcode);
+
 void Multiply(ARM_U_WORD opcode);
+
 void PSR_Reg(ARM_U_WORD opcode);
+
 void PSR_Imm(ARM_U_WORD opcode);
+
 void DataProc_Imm(ARM_U_WORD opcode);
+
 void DataProc_Reg(ARM_U_WORD opcode);
+
 void DataProc_Shift(ARM_U_WORD opcode);
 
 void unknown_opcode(ARM_U_WORD opcode);
+
 void undefined_opcode(ARM_U_WORD opcode);
+
 /**
  * @todo Check to see if CMP correctly sets overflow and carry flags
  * @body Make sure CMP correctly sets the properly flags when there is
@@ -181,5 +204,5 @@ void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate);
  * Update the condition flags from the given ARM_U_WORD (uint32_t)
  */
 void update_condition_flags(ARM_U_WORD flags);
-
+void print_binary(ARM_U_WORD opcode);
 #endif //DONGBOYADVANCE_INSTRUCTION_SET_H

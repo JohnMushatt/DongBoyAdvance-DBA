@@ -3,12 +3,39 @@
 //
 
 #include "instruction_set.h"
-
+void print_binary(ARM_U_WORD opcode) {
+    for (ARM_U_WORD i = 1 << 31; i > 0; i = i / 2) {
+        (opcode & i) ? printf("1  ") : printf("0  ");
+    }
+    printf("\n");
+    for (ARM_S_WORD i = 31; i >= 0; i--) {
+        if (i < 10) {
+            printf("%d  ", i);
+        } else {
+            printf("%d ", i);
+        }
+    }
+    printf("\n");
+}
 /**
  * Currently should work with ADD, SUB
  */
 void update_condition_flags(ARM_U_WORD flags) {
     cpsr.status |= flags;
+}
+ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate) {
+    return 0;
+}
+ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount) {
+    ARM_U_WORD operand = immediate;
+    if(shift_amount==0) {
+        ROR_RRX_Imm(immediate);
+    }
+    ARM_U_WORD operand_mask = (1 << shift_amount) -1;
+    ARM_U_WORD leftover_mask = operand_mask ^ 0xffffffff;
+    ARM_U_WORD result =(operand & operand_mask)<<((sizeof(ARM_U_WORD)*8)-shift_amount);
+    printf("Performed ROR shift on immediate: imm=[0x%08x] operand_mask=[0x%08x] leftover_mask=[0x%08x] result=[0x%08x]\n",immediate,operand_mask,leftover_mask,result);
+    return result;
 }
 
 void Logical_MOV(ARM_U_WORD reg_d, ARM_U_WORD op2) {
@@ -88,11 +115,11 @@ void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate) {
 }
 
 
-void Arithmetic_AND_Immediate(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD immediate) {
-    if (dest == reg_d) {
-        gpr.registers[dest].data &= immediate;
+void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD immediate) {
+    if (reg_d == reg_n) {
+        gpr.registers[reg_d].data &= immediate;
     } else {
-        gpr.registers[dest].data = gpr.registers[reg_d].data & immediate;
+        gpr.registers[reg_d].data = gpr.registers[reg_n].data & immediate;
     }
 }
 
@@ -381,18 +408,19 @@ void DataProc_Imm(ARM_U_WORD opcode) {
     }
     ARM_U_WORD reg_n = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16;
     ARM_U_WORD reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
-    ARM_U_WORD ROR_Shift = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
+    ARM_U_WORD Is = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
     ARM_U_WORD nn = (opcode & (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
+    ARM_U_WORD nn_shifted = ROR_Imm(nn,Is);
     switch (instruction) {
         case 0x0:
-            Arithmetic_AND_Immediate(reg_d,reg_n)
+            Arithmetic_AND_Immediate(reg_d,reg_n,nn_shifted);
             break;
         case 0x1:
             break;
         case 0x2:
             break;
         case 0xa:
-            Arithmetic_CMP(reg_d,reg_n,is_immedidate);
+            Arithmetic_CMP(reg_d,nn_shifted,is_immedidate);
             break;
 
     }

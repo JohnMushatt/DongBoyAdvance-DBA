@@ -40,9 +40,9 @@ void Arithmetic_SUB(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2) {
  * @todo Verifiy CMP works correctly
  * @body Same as title, @Critical
  */
-void Arithmetic_CMP(ARM_U_WORD reg_d, ARM_U_WORD op2, bool immediate) {
+void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate) {
     ARM_U_WORD cmp_result;
-    ARM_U_WORD left = gpr.registers[reg_d].data;
+    ARM_U_WORD left = gpr.registers[reg_n].data;
     ARM_U_WORD right;
     if (immediate) {
         right = op2;;
@@ -301,6 +301,15 @@ void TransReg9(ARM_U_WORD opcode) {
 }
 
 /**
+ * @todo Implement Transfer Immediate 9 opcode
+ * @body Implement TransImm9 for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void TransImm9(ARM_U_WORD opcode) {
+    printf("TransImm9 occurs here\n");
+}
+
+/**
  * @todo Implement Block Transfer opcode
  * @body Implement BlockTrans for the CPU @Feature,@Opcode
  * @param opcode 32-bit instruction to decode
@@ -326,6 +335,7 @@ void MulLong(ARM_U_WORD opcode) {
 void Multiply(ARM_U_WORD opcode) {
     printf("Multiply occurs here\n");
 }
+
 /**
  * @todo Implement PSR Register opcode
  * @body Implement PSR Reg for the CPU @Feature,@Opcode
@@ -334,6 +344,7 @@ void Multiply(ARM_U_WORD opcode) {
 void PSR_Reg(ARM_U_WORD opcode) {
     printf("PSR_Reg occurs here\n");
 }
+
 /**
  * @todo Implement PSR Immediate opcode
  * @body Implement PSR Imm for the CPU @Feature,@Opcode
@@ -343,6 +354,70 @@ void PSR_Imm(ARM_U_WORD opcode) {
     printf("PSR_Imm occurs here\n");
 
 }
+
+/**
+ * @todo Implement Data Processing Immediate  opcode
+ * @body Implement DataProc_Imm  for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void DataProc_Imm(ARM_U_WORD opcode) {
+    printf("DataProc_Imm occurs here @ [0x%0x]\n", opcode);
+    ARM_U_WORD condition = opcode & (BIT31 | BIT30 | BIT29 | BIT28);
+    ARM_U_WORD check = (opcode & (BIT27 | BIT26));
+    if (check != 0x0) {
+        printf("Wrong opcode\n");
+        return;
+    }
+    bool is_immedidate;
+    if (!(is_immedidate = (opcode & (BIT25)))) {
+        printf("Wrong opcode\n");
+        return;
+    }
+    ARM_U_WORD instruction = (opcode & (BIT24 | BIT23 | BIT22 | BIT21)) >> 21;
+    bool set_condition_flag = (opcode & (BIT20)) >> 20;
+    if(instruction <=0xb && instruction>=0x8 && !set_condition_flag) {
+        printf("Set_condition_flag must equal 1\n");
+        return;
+    }
+    ARM_U_WORD reg_n = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16;
+    ARM_U_WORD reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
+    ARM_U_WORD ROR_Shift = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
+    ARM_U_WORD nn = (opcode & (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
+    switch (instruction) {
+        case 0x0:
+            Arithmetic_AND_Immediate(reg_d,reg_n)
+            break;
+        case 0x1:
+            break;
+        case 0x2:
+            break;
+        case 0xa:
+            Arithmetic_CMP(reg_d,reg_n,is_immedidate);
+            break;
+
+    }
+}
+
+/**
+ * @todo Implement Data Processing Register  opcode
+ * @body Implement DataProc_Reg  for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void DataProc_Reg(ARM_U_WORD opcode) {
+    printf("DataProc_Reg occurs here\n");
+
+}
+
+/**
+ * @todo Implement Data Processing Shift  opcode
+ * @body Implement DataProc_Shift  for the CPU @Feature,@Opcode
+ * @param opcode 32-bit instruction to decode
+ */
+void DataProc_Shift(ARM_U_WORD opcode) {
+    printf("DataProc_Shift occurs here\n");
+
+}
+
 void undefined_opcode(ARM_U_WORD opcode) {
     printf("Undefined opcode occurs here\n");
 }
@@ -407,7 +482,13 @@ void decode(ARM_U_WORD opcode) {
                         TransReg9(opcode);
                     }
                     break;
+                case 0x2:
+                    //Transfer immediate 9
+                    TransImm9(opcode);
+                    break;
                 case 0x1:
+                    //Data Processing Immediate
+                    DataProc_Imm(opcode);
                     break;
                 case 0x0:
                     //TransImm10
@@ -415,38 +496,48 @@ void decode(ARM_U_WORD opcode) {
                         TransImm10(opcode);
                     }
 
-                    //TransReg10
+                        //TransReg10
                     else if (!((opcode & BIT22) >> 22) && ((opcode & (BIT8 | BIT9 | BIT10 | BIT11)) >> 8 == 0x0) &&
                              ((opcode & BIT7) >> 7) && ((opcode & BIT4) >> 4)) {
                         TransReg10(opcode);
                     }
 
-                    //TransSwp12
+                        //TransSwp12
                     else if (((opcode & (BIT24 | BIT25)) >> 24 == 0x2) && ((opcode & (BIT21 | BIT22)) >> 21 == 0x0) &&
                              ((opcode & (BIT4 | BIT5 | BIT6 | BIT7 | BIT8 | BIT9 | BIT10 | BIT11)) >> 4 == 0x9)) {
                         TransSwp12(opcode);
                     }
-                    //MulLong
+                        //MulLong
                     else if (((opcode & (BIT23 | BIT24)) >> 23 == 0x1) &&
-                               ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
+                             ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
                         MulLong(opcode);
                     }
-                    //Multiply
+                        //Multiply
                     else if (((opcode & (BIT22 | BIT23 | BIT24)) >> 22 == 0x0) &&
-                               ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
+                             ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
                         Multiply(opcode);
                     }
-                    //Branch Exchange
+                        //Branch Exchange
                     else if ((opcode & (0x012FFF10)) == 0x012FFF10) {
                         BranchExchange(opcode);
                     }
-                    else if((opcode & BIT24) == BIT24) {
+                        //PSR Register
+                    else if ((opcode & BIT24) == BIT24) {
                         PSR_Reg(opcode);
                     }
-                    else if((opcode & 0x03200000) ==0x03200000) {
+                        //PSR Immediate
+                    else if ((opcode & 0x03200000) == 0x03200000) {
                         PSR_Imm(opcode);
                     }
-                    else {
+
+                        //Data Processing Register
+                    else if (((opcode & (BIT27 | BIT26 | BIT25 | BIT7 | BIT4))) == (BIT4)) {
+                        DataProc_Reg(opcode);
+                    }
+                        //Data Processing Shift
+                    else if (((opcode & (BIT27 | BIT26 | BIT25 | BIT4))) == 0x0) {
+                        DataProc_Shift(opcode);
+                    } else {
 
                         unknown_opcode(opcode);
                     }

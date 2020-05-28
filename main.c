@@ -36,7 +36,6 @@ void print_binary(ARM_U_WORD opcode) {
 }
 
 #include "debugger.h"
-//#include "cpu
 #endif
 
 int main(int argc, char **argv) {
@@ -60,9 +59,7 @@ int main(int argc, char **argv) {
 
     read_rom();
     init_cpu();
-    bool done = false;
     ARM_U_WORD opcode;
-    char op_code_in_binary[33];
     while (rom_info->current_opcode < rom_info->rom_size) {
         opcode = fetch_opcode();
         print_binary(opcode);

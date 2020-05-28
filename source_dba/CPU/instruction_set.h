@@ -163,6 +163,10 @@ void MulLong(ARM_U_WORD opcode);
 void Multiply(ARM_U_WORD opcode);
 void PSR_Reg(ARM_U_WORD opcode);
 void PSR_Imm(ARM_U_WORD opcode);
+void DataProc_Imm(ARM_U_WORD opcode);
+void DataProc_Reg(ARM_U_WORD opcode);
+void DataProc_Shift(ARM_U_WORD opcode);
+
 void unknown_opcode(ARM_U_WORD opcode);
 void undefined_opcode(ARM_U_WORD opcode);
 /**
@@ -170,7 +174,7 @@ void undefined_opcode(ARM_U_WORD opcode);
  * @body Make sure CMP correctly sets the properly flags when there is
  * a overflow/carry result
  */
-void Arithmetic_CMP(ARM_U_WORD reg_d, ARM_U_WORD op2, bool immediate);
+void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate);
 
 
 /**

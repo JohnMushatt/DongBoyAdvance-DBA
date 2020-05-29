@@ -3,6 +3,7 @@
 //
 
 #include "instruction_set.h"
+
 void print_binary(ARM_U_WORD opcode) {
     for (ARM_U_WORD i = 1 << 31; i > 0; i = i / 2) {
         (opcode & i) ? printf("1  ") : printf("0  ");
@@ -17,24 +18,28 @@ void print_binary(ARM_U_WORD opcode) {
     }
     printf("\n");
 }
+
 /**
  * Currently should work with ADD, SUB
  */
 void update_condition_flags(ARM_U_WORD flags) {
     cpsr.status |= flags;
 }
+
 ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate) {
     return 0;
 }
+
 ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount) {
     ARM_U_WORD operand = immediate;
-    if(shift_amount==0) {
+    if (shift_amount == 0) {
         ROR_RRX_Imm(immediate);
     }
-    ARM_U_WORD operand_mask = (1 << shift_amount) -1;
-    ARM_U_WORD leftover_mask = operand_mask ^ 0xffffffff;
-    ARM_U_WORD result =(operand & operand_mask)<<((sizeof(ARM_U_WORD)*8)-shift_amount);
-    printf("Performed ROR shift on immediate: imm=[0x%08x] operand_mask=[0x%08x] leftover_mask=[0x%08x] result=[0x%08x]\n",immediate,operand_mask,leftover_mask,result);
+    ARM_U_WORD operand_mask = (1 << shift_amount) - 1;
+    ARM_U_WORD leftover_mask = operand_mask ^0xffffffff;
+    ARM_U_WORD result = (operand & operand_mask) << ((sizeof(ARM_U_WORD) * 8) - shift_amount);
+    printf("Performed ROR shift on immediate: imm=[0x%08x] operand_mask=[0x%08x] leftover_mask=[0x%08x] result=[0x%08x]\n",
+           immediate, operand_mask, leftover_mask, result);
     return result;
 }
 
@@ -60,6 +65,10 @@ void Arithmetic_SUB(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2) {
     } else {
         gpr.registers[reg_d].data = gpr.registers[reg_n].data - op2;
     }
+}
+
+void Arithmetic_RSC_Imm(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = (Op2 - gpr.registers[reg_n].data) + cpsr.C_Carry_flag - 1;
 }
 
 /**
@@ -242,7 +251,25 @@ void Jump_Branch(ARM_U_WORD cond, ARM_U_WORD label) {
  * @param opcode 32-bit instruction to decode
  */
 void software_interrupt(ARM_U_WORD opcode) {
-    printf("Software Interrupt occurs here\n");
+    printf("SWI occurs here @ [0x%0x]\n", opcode);
+    ARM_U_WORD condition = (opcode & (BIT31 | BIT30 | BIT29 | BIT28)) >> 28;
+    ARM_U_WORD instruction = (opcode & (BIT27 | BIT26 | BIT25 | BIT24)) >> 24;
+    //Software interrupt
+    if (instruction == 0xf) {
+        /**
+         * @todo Implement software interrupt routine in the SWI/BKPT opcode
+         * @body The @Opcode has a specific routine for software interrupts that can be seen in GBATEK.
+         */
+    }
+        //Breakpoint
+    else if (instruction == 0x1) {
+        debug_assert(condition == 0xe,
+                     "condition is not 0xe when opcode should be condition=0xe");
+        ARM_U_WORD bkpt_check_1 = (opcode & (BIT23 | BIT22 | BIT21 | BIT20)) >> 20;
+        debug_assert(bkpt_check_1 ==0x2,"bkpt_check_1 is not 0x2 when opcode should be bkpt_check_1=0x2" );
+        ARM_U_WORD bkpt_check_2 = (opcode & (BIT7 | BIT6 | BIT5 | BIT4));
+        debug_assert(bkpt_check_2==0x7,"bkpt_check_2 is not 0x7 when opcode should be bkpt_check_2=0x7");
+    }
 }
 
 /**
@@ -382,6 +409,52 @@ void PSR_Imm(ARM_U_WORD opcode) {
 
 }
 
+ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode) {
+    switch (opcode) {
+        case AND:
+            return AND;
+            break;
+        case XOR:
+            break;
+        case SUB:
+            break;
+        case SUB_REVERSED:
+            break;
+        case ADD:
+            break;
+        case ADD_CARRY:
+            break;
+        case SUB_CARRY:
+            break;
+        case SUB_CARRY_REVERSED:
+            break;
+        case TEST:
+            break;
+        case TEST_EX:
+            break;
+        case CMP:
+            return CMP;
+            break;
+        case CMN:
+            break;
+        case ORR:
+            break;
+        case MOV:
+            break;
+        case BIC:
+            break;
+        case MVN:
+            break;
+    }
+}
+
+void debug_assert(bool expr, const char *msg) {
+    if (!expr) {
+        fprintf(stderr, "%s\n", msg);
+        assert(expr);
+    }
+}
+
 /**
  * @todo Implement Data Processing Immediate  opcode
  * @body Implement DataProc_Imm  for the CPU @Feature,@Opcode
@@ -389,38 +462,62 @@ void PSR_Imm(ARM_U_WORD opcode) {
  */
 void DataProc_Imm(ARM_U_WORD opcode) {
     printf("DataProc_Imm occurs here @ [0x%0x]\n", opcode);
-    ARM_U_WORD condition = opcode & (BIT31 | BIT30 | BIT29 | BIT28);
+    ARM_U_WORD condition = (opcode & (BIT31 | BIT30 | BIT29 | BIT28)) >> 28;
     ARM_U_WORD check = (opcode & (BIT27 | BIT26));
-    if (check != 0x0) {
-        printf("Wrong opcode\n");
-        return;
-    }
-    bool is_immedidate;
-    if (!(is_immedidate = (opcode & (BIT25)))) {
-        printf("Wrong opcode\n");
-        return;
-    }
+
+    debug_assert(check == 0x0, "check != 0x0 when opcode should be check==0x0");
+
+    bool immediate = (opcode & (BIT25));
+    debug_assert(immediate, "is_immediate is false when opcode should be is_immediate=true");
     ARM_U_WORD instruction = (opcode & (BIT24 | BIT23 | BIT22 | BIT21)) >> 21;
+    ALU_Opcode_Alias instr_alias = get_ALU_opcode_alias(instruction);
     bool set_condition_flag = (opcode & (BIT20)) >> 20;
-    if(instruction <=0xb && instruction>=0x8 && !set_condition_flag) {
-        printf("Set_condition_flag must equal 1\n");
-        return;
+
+    debug_assert((instruction < 0x8) || (instruction <= 0xb && instruction >= 0x8 && !set_condition_flag),
+                 "set_condition_flag is false when opcode should be set_condition_flag=true");
+
+    ARM_U_WORD reg_n = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16; //1st Operand Register - Includes PC=15
+    ARM_U_WORD reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12; //Destination Register - Includes PC=15
+    if (instr_alias == CMP || instr_alias == CMN || instr_alias == TEST || instr_alias == TEST_EX) {
+        debug_assert((reg_d == 0x0 || reg_d == 0xf),
+                     "Bad destination register, needs to be either reg[0] or reg[15]");
     }
-    ARM_U_WORD reg_n = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16;
-    ARM_U_WORD reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
     ARM_U_WORD Is = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
     ARM_U_WORD nn = (opcode & (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
-    ARM_U_WORD nn_shifted = ROR_Imm(nn,Is);
+    ARM_U_WORD nn_shifted = ROR_Imm(nn, Is);
+    printf("DataProc_Imm Opcode: 0x%08x\n"
+           "Condition: 0x%x\n"
+           "Check: 0x%x\n"
+           "reg_n: %d\n"
+           "reg_d: %d\n"
+           "Is: 0x%x\n"
+           "nn: 0x%01x\n"
+           "nn_shifted: 0x%08x\n", opcode, condition, check, reg_n, reg_d, Is, nn, nn_shifted);
     switch (instruction) {
         case 0x0:
-            Arithmetic_AND_Immediate(reg_d,reg_n,nn_shifted);
+            Arithmetic_AND_Immediate(reg_d, reg_n, nn_shifted);
             break;
         case 0x1:
             break;
         case 0x2:
             break;
+        case 0x3:
+            break;
+        case 0x4:
+            break;
+        case 0x5:
+            break;
+        case 0x6:
+            break;
+        case 0x7:
+            Arithmetic_RSC_Imm(reg_d, reg_n, nn_shifted);
+            break;
+        case 0x8:
+            break;
+        case 0x9:
+            break;
         case 0xa:
-            Arithmetic_CMP(reg_d,nn_shifted,is_immedidate);
+            Arithmetic_CMP(reg_d, nn_shifted, immediate);
             break;
 
     }
@@ -481,6 +578,14 @@ void decode(ARM_U_WORD opcode) {
                 CoDataOp(opcode);
             }
             break;
+        case 0x3:
+            if ((opcode & (BIT23 | BIT21 | BIT20)) >> 20 == 0x2) {
+                PSR_Imm(opcode);
+
+            }
+            break;
+        case 0x1:
+            PSR_Reg(opcode);
             //The rest of the opcodes markers are only 3 bits wide for this section
         default:
             o_type = o_type >> 1;
@@ -531,7 +636,8 @@ void decode(ARM_U_WORD opcode) {
                     }
 
                         //TransSwp12
-                    else if (((opcode & (BIT24 | BIT25)) >> 24 == 0x2) && ((opcode & (BIT21 | BIT22)) >> 21 == 0x0) &&
+                    else if (((opcode & (BIT24 | BIT25)) >> 24 == 0x2) &&
+                             ((opcode & (BIT21 | BIT22)) >> 21 == 0x0) &&
                              ((opcode & (BIT4 | BIT5 | BIT6 | BIT7 | BIT8 | BIT9 | BIT10 | BIT11)) >> 4 == 0x9)) {
                         TransSwp12(opcode);
                     }

@@ -7,7 +7,7 @@
 
 #include "cpu.h"
 #include "logger.h"
-
+#include "assert.h"
 #define BIT0 1 << 0
 #define BIT1 1 << 1
 #define BIT2 1 << 2
@@ -40,8 +40,8 @@
 #define BIT29 1 << 29
 #define BIT30 1 << 30
 #define BIT31 1 << 31
-
-
+void debug_assert(bool expr, const char* msg);
+/*
 typedef enum {
     ADD, SUB, CMP
 } Instruction_Type;
@@ -51,6 +51,7 @@ typedef struct _instruction {
     ARM_U_WORD operand1;
     ARM_U_WORD operand2;
 } Instruction;
+ */
 /**
 Opcode Format
   Bit    Expl.
@@ -92,6 +93,10 @@ Opcode Format
     11-8   Is - ROR-Shift applied to nn (0-30, in steps of 2)
     7-0    nn - 2nd Operand Unsigned 8bit Immediate
    */
+typedef enum {
+    AND,XOR,SUB,SUB_REVERSED,ADD,ADD_CARRY,SUB_CARRY,SUB_CARRY_REVERSED,TEST,TEST_EX,CMP,CMN,ORR,MOV,BIC,MVN
+} ALU_Opcode_Alias;
+ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode);
 typedef union _opcode_ALU {
     ARM_U_WORD word;
     struct {
@@ -127,6 +132,8 @@ void Arithmetic_ADD(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
 void Arithmetic_ADDC(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
 
 void Arithmetic_SUB(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
+
+void Arithmetic_RSC_Imm(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
 /**
  * AND Instructions
  */

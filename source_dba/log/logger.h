@@ -11,7 +11,7 @@
 #include <time.h>
 #include <cpu.h>
 #include <unistd.h>
-
+#include <assert.h>
 /**
  * Error struct
  */
@@ -54,5 +54,9 @@ void print_stack_pointer();
 void print_program_counter();
 
 void print_link_register();
+
+
+
+void debug_assert(bool expr, const char* msg);
 
 #endif //DONGBOYADVANCE_LOGGER_H

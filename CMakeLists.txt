@@ -35,7 +35,7 @@ find_package(Curses REQUIRED)
 include_directories(${CURSES_INCLUDE_DIR})
 
 if (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
-    ADD_DEFINITIONS(-D_DEBUG_MODE)
+    #ADD_DEFINITIONS(-D_DEBUG_MODE)
     message(STATUS "Debug Mode")
 else ()
     message(STATUS "Release Mode")

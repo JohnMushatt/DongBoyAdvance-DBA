@@ -103,3 +103,9 @@ void log_msg(General_Message msg) {
     time(&now);
     printf("Instruction: %s @ time: %s\n%s",msg.instruction_name,ctime(&now),msg.log);
 }
+void debug_assert(bool expr, const char *msg) {
+    if (!expr) {
+        fprintf(stderr, "%s\n", msg);
+        assert(expr);
+    }
+}

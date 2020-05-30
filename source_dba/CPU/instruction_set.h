@@ -4,11 +4,12 @@
 
 #ifndef DONGBOYADVANCE_INSTRUCTION_SET_H
 #define DONGBOYADVANCE_INSTRUCTION_SET_H
-#ifndef BIT_MACROS
-#define BIT_MACROS
+
 #include "cpu.h"
 #include "logger.h"
 #include "assert.h"
+#ifndef BIT_MACROS
+#define BIT_MACROS
 #define BIT0 1 << 0
 #define BIT1 1 << 1
 #define BIT2 1 << 2
@@ -41,19 +42,9 @@
 #define BIT29 1 << 29
 #define BIT30 1 << 30
 #define BIT31 1 << 31
+
 #endif
-void debug_assert(bool expr, const char* msg);
-/*
-typedef enum {
-    ADD, SUB, CMP
-} Instruction_Type;
-typedef struct _instruction {
-    Instruction_Type type;
-    ARM_U_WORD destination;
-    ARM_U_WORD operand1;
-    ARM_U_WORD operand2;
-} Instruction;
- */
+
 /**
 Opcode Format
   Bit    Expl.
@@ -96,18 +87,9 @@ Opcode Format
     7-0    nn - 2nd Operand Unsigned 8bit Immediate
    */
 typedef enum {
-    AND,XOR,SUB,SUB_REVERSED,ADD,ADD_CARRY,SUB_CARRY,SUB_CARRY_REVERSED,TEST,TEST_EX,CMP,CMN,ORR,MOV,BIC,MVN
+    AND,XOR,SUB,RSB,ADD,ADC,SBC,RSC,TST,TEQ,CMP,CMN,ORR,MOV,BIC,MVN
 } ALU_Opcode_Alias;
 ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode);
-
-typedef union _opcode_ALU {
-    ARM_U_WORD word;
-    struct {
-        ARM_U_WORD nn : 8; //nn - 2nd Operand Unsigned 8bit Immediate
-        ARM_U_WORD Is : 4;
-        ARM_U_WORD Rm;
-    };
-} Opcode_ALU;
 typedef enum {
     EQ, NE, CS, CC, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, AL
 } Branch_Condition;
@@ -115,30 +97,13 @@ typedef Branch_Condition Condition_Alias;
 Condition_Alias get_condition_alias(ARM_U_WORD opcode);
 
 void decode(ARM_U_WORD opcode);
-
-void Logical_MOV(ARM_U_WORD reg_d, ARM_U_WORD op2);
-
-void Logical_MVN(ARM_U_WORD reg_d, ARM_U_WORD op2);
-
+bool current_condition_flag;
+void update_condition_flag(bool condition_flag);
 /**
  * Arithmetic Instructions
  */
 ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount);
-
 ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate);
-
-//TODO VERY IMPORTANT, THESE INSTRUCTIONS NEED TO UPDATE NZCV FLAGS!!
-/**
- * @todo Verify that add, addc, sub, and cmp correctly update flags
- * @body Verify that the above functions correctly modify status flags
- */
-void Arithmetic_ADD(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
-
-void Arithmetic_ADDC(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
-
-void Arithmetic_SUB(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
-
-
 void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
 void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
 void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);

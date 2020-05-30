@@ -32,6 +32,9 @@ void update_condition_flags(ARM_U_WORD flags) {
 
 void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD immediate) {
     gpr.registers[reg_d].data = gpr.registers[reg_n].data & immediate;
+    if (current_condition_flag) {
+
+    }
 }
 
 void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD immediate) {
@@ -117,29 +120,9 @@ ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount) {
 /**
  * ALU IMMEDIATE INSTRUCTIONS END
  */
-void Logical_MOV(ARM_U_WORD reg_d, ARM_U_WORD op2) {
-    gpr.registers[reg_d].data = op2;
-    if (debug) {
-        print_gen_reg();
-    }
 
-}
 
-void Arithmetic_ADD(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2) {
-    if (reg_d == reg_n) {
-        gpr.registers[reg_d].data += op2;
-    } else {
-        gpr.registers[reg_d].data = gpr.registers[reg_n].data + op2;
-    }
-}
 
-void Arithmetic_SUB(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2) {
-    if (reg_d == reg_n) {
-        gpr.registers[reg_d].data -= op2;
-    } else {
-        gpr.registers[reg_d].data = gpr.registers[reg_n].data - op2;
-    }
-}
 
 
 /**
@@ -278,9 +261,9 @@ bool check_condition(Branch_Condition condition) {
         case LT:
             return cpsr.N_Sign_flag != cpsr.V_Overflow_flag;
         case GT:
-            return !cpsr.Z_Zero_flag && (cpsr.N_Sign_flag==cpsr.V_Overflow_flag);
+            return !cpsr.Z_Zero_flag && (cpsr.N_Sign_flag == cpsr.V_Overflow_flag);
         case LE:
-            return cpsr.Z_Zero_flag || cpsr.N_Sign_flag!=cpsr.V_Overflow_flag;
+            return cpsr.Z_Zero_flag || cpsr.N_Sign_flag != cpsr.V_Overflow_flag;
         case AL:
             return true;
     }
@@ -419,7 +402,66 @@ void TransReg9(ARM_U_WORD opcode) {
  * @param opcode 32-bit instruction to decode
  */
 void TransImm9(ARM_U_WORD opcode) {
-    printf("TransImm9 occurs here\n");
+    ARM_U_WORD condition = (opcode & (BIT31 | BIT30 | BIT29 | BIT28)) >> 28;
+    Condition_Alias condition_alias = get_condition_alias(condition);
+
+    ARM_U_WORD check = (opcode & (BIT27 | BIT26)) >> 26;
+    debug_assert(check == 0x1, "Check must be 0x1 for this instruction");
+
+    bool Immediate_Offset_Flag = (opcode & (BIT25)) >> 25; //0=Immediate, 1=Shifted Register
+    debug_assert(Immediate_Offset_Flag == 0, "Immediate_Offset_Flag must be false for this instruction");
+
+    bool P = (opcode & (BIT24)) >> 24; //0=post; add offset after transfer, 1=pre; before trans.
+    bool U = (opcode & (BIT23)) >> 23;
+    bool B = (opcode & (BIT22)) >> 22;
+    bool Memory_Management = (opcode & (BIT21)) >> 21;
+    bool Write_Back = (opcode & (BIT21)) >> 21;
+    bool L = (opcode & (BIT20)) >> 20;
+    ARM_U_WORD reg_n = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16; //Base register
+    ARM_U_WORD reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12; //Source/Destination Register
+    ARM_U_WORD Offset = (opcode &
+                         (BIT12 | BIT11 | BIT10 | BIT9 | BIT8 | BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
+
+    char Bit_21_String[128];
+    if (P) {
+        sprintf(Bit_21_String, "W: %s;write-back is OPTIONAL", Write_Back ? "write address into base" : "no write-back");
+    } else {
+        sprintf(Bit_21_String, "T: %s;write-back is ALWAYS enabled", Memory_Management ? "1=Force non-privileged access" : "0=Normal");
+    }
+    printf("Opcode: [TransImm9|0x%08x]\nBinary Format:\n", opcode);
+    print_binary(opcode);
+    printf("Condition: 0x%x\n"
+           "Check: 0x%x\n"
+           "I(Immediate Offset Flag): %s\n"
+           "P: %s\n"
+           "U: %s\n"
+           "B: %s\n"
+           "%s\n"
+           "L: %s\n"
+           "reg_n: %d reg_n.data=[0x%08x]\n"
+           "reg_d: %d reg_d.data=[0x%08x]\n"
+           "Offset: 0x%08x\n",
+           condition,
+           check,
+           Immediate_Offset_Flag ? "1=Shifted_Register" : "0=Immediate",
+           P ? "1=pre;add offset before transfer" : "0=post;add offset after transfer",
+           U ? "1=up;add offset to base" : "0=down;subtract offset from base",
+           B ? "1=transfer 8bit/byte" : "0=transfer 32bit/word",
+           Bit_21_String,
+           L ? "1=LDR -> Load from memory" : "0=STR -> Store to memory",
+           reg_n, gpr.registers[reg_n].data, reg_d,
+           gpr.registers[reg_n].data, Offset);
+    bool pass_condition = check_condition(condition_alias);
+    if (pass_condition) {
+        switch ((ARM_U_BYTE)L) {
+            case false:
+                break;
+            case true:
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 /**
@@ -472,28 +514,26 @@ ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode) {
     switch (opcode) {
         case AND:
             return AND;
-            break;
         case XOR:
             break;
         case SUB:
             break;
-        case SUB_REVERSED:
+        case RSB:
             break;
         case ADD:
             break;
-        case ADD_CARRY:
+        case ADC:
             break;
-        case SUB_CARRY:
+        case SBC:
             break;
-        case SUB_CARRY_REVERSED:
+        case RSC:
             break;
-        case TEST:
+        case TST:
             break;
-        case TEST_EX:
+        case TEQ:
             break;
         case CMP:
             return CMP;
-            break;
         case CMN:
             break;
         case ORR:
@@ -558,11 +598,11 @@ Condition_Alias get_condition_alias(ARM_U_WORD opcode) {
     }
 }
 
-void debug_assert(bool expr, const char *msg) {
-    if (!expr) {
-        fprintf(stderr, "%s\n", msg);
-        assert(expr);
-    }
+
+void update_condition_flag(bool condition_flag) {
+    printf("Condition flag set from %s to %s\n", current_condition_flag ? "true" : "false",
+           condition_flag ? "true" : "false");
+    current_condition_flag = condition_flag;
 }
 
 /**
@@ -573,22 +613,22 @@ void debug_assert(bool expr, const char *msg) {
 void DataProc_Imm(ARM_U_WORD opcode) {
     ARM_U_WORD condition = (opcode & (BIT31 | BIT30 | BIT29 | BIT28)) >> 28;
     Condition_Alias condition_alias = get_condition_alias(condition);
-    ARM_U_WORD check = (opcode & (BIT27 | BIT26));
+    ARM_U_WORD check = (opcode & (BIT27 | BIT26)) >> 26;
 
-    debug_assert(check == 0x0, "check != 0x0 when opcode should be check==0x0");
+    debug_assert(check == 0x0, "Check must be 0x0 for this instruction");
 
     bool immediate = (opcode & (BIT25));
     debug_assert(immediate, "is_immediate is false when opcode should be is_immediate=true");
     ARM_U_WORD instruction = (opcode & (BIT24 | BIT23 | BIT22 | BIT21)) >> 21;
     ALU_Opcode_Alias instr_alias = get_ALU_opcode_alias(instruction);
-    bool set_condition_flag = (opcode & (BIT20)) >> 20;
-
-    debug_assert((instruction < 0x8) || (instruction <= 0xb && instruction >= 0x8 && !set_condition_flag),
-                 "set_condition_flag is false when opcode should be set_condition_flag=true");
+    bool condition_flag = (opcode & (BIT20)) >> 20;
+    update_condition_flag(condition_flag);
+    debug_assert((instruction < 0x8) || (instruction <= 0xb && instruction >= 0x8 && !condition_flag),
+                 "condition_flag is false when opcode should be set_condition_flag=true");
 
     ARM_U_WORD reg_n = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16; //1st Operand Register - Includes PC=15
     ARM_U_WORD reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12; //Destination Register - Includes PC=15
-    if (instr_alias == CMP || instr_alias == CMN || instr_alias == TEST || instr_alias == TEST_EX) {
+    if (instr_alias >= TST && instr_alias <= CMN) {
         debug_assert((reg_d == 0x0 || reg_d == 0xf),
                      "Bad destination register, needs to be either reg[0] or reg[15]");
     }

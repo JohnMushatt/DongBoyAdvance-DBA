@@ -49,7 +49,6 @@ int main(int argc, char **argv) {
     ARM_U_WORD opcode;
     while (rom_info->current_opcode < rom_info->rom_size) {
         opcode = fetch_opcode();
-        print_binary(opcode);
         decode(opcode);
     }
     destroy_rom();

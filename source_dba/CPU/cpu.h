@@ -266,6 +266,7 @@ void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode);
 void view_address(ARM_U_WORD address, Read_Mode mode);
 
 ARM_U_WORD get_word(ARM_U_WORD address);
+void clear_all_mem();
 /***********************************************
  * Registers begin
  *

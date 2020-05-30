@@ -4,7 +4,8 @@
 
 #ifndef DONGBOYADVANCE_INSTRUCTION_SET_H
 #define DONGBOYADVANCE_INSTRUCTION_SET_H
-
+#ifndef BIT_MACROS
+#define BIT_MACROS
 #include "cpu.h"
 #include "logger.h"
 #include "assert.h"
@@ -40,6 +41,7 @@
 #define BIT29 1 << 29
 #define BIT30 1 << 30
 #define BIT31 1 << 31
+#endif
 void debug_assert(bool expr, const char* msg);
 /*
 typedef enum {
@@ -97,6 +99,7 @@ typedef enum {
     AND,XOR,SUB,SUB_REVERSED,ADD,ADD_CARRY,SUB_CARRY,SUB_CARRY_REVERSED,TEST,TEST_EX,CMP,CMN,ORR,MOV,BIC,MVN
 } ALU_Opcode_Alias;
 ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode);
+
 typedef union _opcode_ALU {
     ARM_U_WORD word;
     struct {
@@ -106,8 +109,10 @@ typedef union _opcode_ALU {
     };
 } Opcode_ALU;
 typedef enum {
-    EQ, NE, CS, HS, CC, LO, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, AL
+    EQ, NE, CS, CC, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, AL
 } Branch_Condition;
+typedef Branch_Condition Condition_Alias;
+Condition_Alias get_condition_alias(ARM_U_WORD opcode);
 
 void decode(ARM_U_WORD opcode);
 
@@ -133,12 +138,28 @@ void Arithmetic_ADDC(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
 
 void Arithmetic_SUB(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
 
-void Arithmetic_RSC_Imm(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
+void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_RSB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_ADC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_SBC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_RSC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_TST_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_TEQ_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_CMP_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_CMN_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d,ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_MOV_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2);
+void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d,ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_MVN_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2);
+
 /**
  * AND Instructions
  */
 //2nd operand is immediate version
-void Arithmetic_AND_Immediate(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD immediate);
 
 void Arithmetic_ANDS_Immediate(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD immediate);
 

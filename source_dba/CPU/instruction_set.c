@@ -16,7 +16,7 @@ void print_binary(ARM_U_WORD opcode) {
             printf("%d ", i);
         }
     }
-    printf("\n");
+    printf("\n\n");
 }
 
 /**
@@ -26,6 +26,77 @@ void update_condition_flags(ARM_U_WORD flags) {
     cpsr.status |= flags;
 }
 
+/**
+ * ALU IMMEDIATE INSTRUCTIONS
+ */
+
+void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD immediate) {
+    gpr.registers[reg_d].data = gpr.registers[reg_n].data & immediate;
+}
+
+void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD immediate) {
+    gpr.registers[reg_d].data = gpr.registers[reg_n].data ^ immediate;
+}
+
+void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = gpr.registers[reg_n].data - Op2;
+}
+
+void Arithmetic_RSB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = Op2 - gpr.registers[reg_n].data;
+}
+
+void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = gpr.registers[reg_n].data + Op2;
+}
+
+void Arithmetic_ADC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = gpr.registers[reg_n].data + Op2 + cpsr.C_Carry_flag;
+}
+
+void Arithmetic_SBC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = gpr.registers[reg_n].data - Op2 + cpsr.C_Carry_flag - 1;
+}
+
+void Arithmetic_RSC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = Op2 - gpr.registers[reg_n].data + cpsr.C_Carry_flag - 1;
+}
+
+void Arithmetic_TST_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    ARM_U_WORD result = gpr.registers[reg_n].data & Op2;
+}
+
+void Arithmetic_TEQ_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    ARM_U_WORD result = gpr.registers[reg_n].data ^Op2;
+}
+
+void Arithmetic_CMP_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    ARM_U_WORD result = gpr.registers[reg_n].data - Op2;
+}
+
+void Arithmetic_CMN_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    ARM_U_WORD result = gpr.registers[reg_n].data + Op2;
+}
+
+void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = gpr.registers[reg_n].data | Op2;
+}
+
+void Arithmetic_MOV_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = Op2;
+}
+
+void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = gpr.registers[reg_n].data & ~(Op2);
+}
+
+void Arithmetic_MVN_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = ~(Op2);
+}
+
+/**
+ * ALU IMMEDIATE UTILITY INSTRUCTIONS
+ */
 ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate) {
     return 0;
 }
@@ -43,6 +114,9 @@ ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount) {
     return result;
 }
 
+/**
+ * ALU IMMEDIATE INSTRUCTIONS END
+ */
 void Logical_MOV(ARM_U_WORD reg_d, ARM_U_WORD op2) {
     gpr.registers[reg_d].data = op2;
     if (debug) {
@@ -67,9 +141,6 @@ void Arithmetic_SUB(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2) {
     }
 }
 
-void Arithmetic_RSC_Imm(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = (Op2 - gpr.registers[reg_n].data) + cpsr.C_Carry_flag - 1;
-}
 
 /**
  * reg_d - op2, set corresponding arithmetic flag
@@ -123,14 +194,6 @@ void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate) {
     update_condition_flags(flags);
 }
 
-
-void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD immediate) {
-    if (reg_d == reg_n) {
-        gpr.registers[reg_d].data &= immediate;
-    } else {
-        gpr.registers[reg_d].data = gpr.registers[reg_n].data & immediate;
-    }
-}
 
 /**
  * @todo Add carry flag update to this instruction
@@ -191,39 +254,35 @@ void Arithmetic_ANDS_Register_Shifted(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_W
 bool check_condition(Branch_Condition condition) {
     switch (condition) {
         case EQ:
-            return cond_flags.EQ;
+            return cpsr.Z_Zero_flag;
         case NE:
-            break;
+            return !cpsr.Z_Zero_flag;
         case CS:
-            break;
-        case HS:
-            break;
+            return cpsr.C_Carry_flag;
         case CC:
-            break;
-        case LO:
-            break;
+            return !cpsr.C_Carry_flag;
         case MI:
-            break;
+            return cpsr.N_Sign_flag;
         case PL:
-            break;
+            return !cpsr.N_Sign_flag;
         case VS:
-            break;
+            return cpsr.V_Overflow_flag;
         case VC:
-            break;
+            return !cpsr.V_Overflow_flag;
         case HI:
-            break;
+            return cpsr.C_Carry_flag && cpsr.Z_Zero_flag;
         case LS:
-            break;
+            return !cpsr.C_Carry_flag || cpsr.Z_Zero_flag;
         case GE:
-            break;
+            return cpsr.N_Sign_flag == cpsr.V_Overflow_flag;
         case LT:
-            break;
+            return cpsr.N_Sign_flag != cpsr.V_Overflow_flag;
         case GT:
-            break;
+            return !cpsr.Z_Zero_flag && (cpsr.N_Sign_flag==cpsr.V_Overflow_flag);
         case LE:
-            break;
+            return cpsr.Z_Zero_flag || cpsr.N_Sign_flag!=cpsr.V_Overflow_flag;
         case AL:
-            break;
+            return true;
     }
 }
 
@@ -266,9 +325,9 @@ void software_interrupt(ARM_U_WORD opcode) {
         debug_assert(condition == 0xe,
                      "condition is not 0xe when opcode should be condition=0xe");
         ARM_U_WORD bkpt_check_1 = (opcode & (BIT23 | BIT22 | BIT21 | BIT20)) >> 20;
-        debug_assert(bkpt_check_1 ==0x2,"bkpt_check_1 is not 0x2 when opcode should be bkpt_check_1=0x2" );
+        debug_assert(bkpt_check_1 == 0x2, "bkpt_check_1 is not 0x2 when opcode should be bkpt_check_1=0x2");
         ARM_U_WORD bkpt_check_2 = (opcode & (BIT7 | BIT6 | BIT5 | BIT4));
-        debug_assert(bkpt_check_2==0x7,"bkpt_check_2 is not 0x7 when opcode should be bkpt_check_2=0x7");
+        debug_assert(bkpt_check_2 == 0x7, "bkpt_check_2 is not 0x7 when opcode should be bkpt_check_2=0x7");
     }
 }
 
@@ -448,6 +507,57 @@ ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode) {
     }
 }
 
+Condition_Alias get_condition_alias(ARM_U_WORD opcode) {
+    switch (opcode) {
+
+        case EQ:
+            return EQ;
+            break;
+        case NE:
+            return NE;
+            break;
+        case CS:
+            return CS;
+            break;
+        case CC:
+            return CC;
+            break;
+        case MI:
+            return MI;
+            break;
+        case PL:
+            return PL;
+            break;
+        case VS:
+            return VS;
+            break;
+        case VC:
+            return VC;
+            break;
+        case HI:
+            return HI;
+            break;
+        case LS:
+            return LS;
+            break;
+        case GE:
+            return GE;
+            break;
+        case LT:
+            return LT;
+            break;
+        case GT:
+            return GT;
+            break;
+        case LE:
+            return LE;
+            break;
+        case AL:
+            return AL;
+            break;
+    }
+}
+
 void debug_assert(bool expr, const char *msg) {
     if (!expr) {
         fprintf(stderr, "%s\n", msg);
@@ -461,8 +571,8 @@ void debug_assert(bool expr, const char *msg) {
  * @param opcode 32-bit instruction to decode
  */
 void DataProc_Imm(ARM_U_WORD opcode) {
-    printf("DataProc_Imm occurs here @ [0x%0x]\n", opcode);
     ARM_U_WORD condition = (opcode & (BIT31 | BIT30 | BIT29 | BIT28)) >> 28;
+    Condition_Alias condition_alias = get_condition_alias(condition);
     ARM_U_WORD check = (opcode & (BIT27 | BIT26));
 
     debug_assert(check == 0x0, "check != 0x0 when opcode should be check==0x0");
@@ -485,41 +595,68 @@ void DataProc_Imm(ARM_U_WORD opcode) {
     ARM_U_WORD Is = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
     ARM_U_WORD nn = (opcode & (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
     ARM_U_WORD nn_shifted = ROR_Imm(nn, Is);
-    printf("DataProc_Imm Opcode: 0x%08x\n"
-           "Condition: 0x%x\n"
+    printf("Opcode: [DataProc_Imm|0x%08x]\nBinary format:\n", opcode);
+    print_binary(opcode);
+    printf("Condition: 0x%x\n"
            "Check: 0x%x\n"
-           "reg_n: %d\n"
-           "reg_d: %d\n"
+           "reg_n: %d reg_n.data=[0x%08x]\n"
+           "reg_d: %d reg_d.data=[0x%08x]\n"
            "Is: 0x%x\n"
            "nn: 0x%01x\n"
-           "nn_shifted: 0x%08x\n", opcode, condition, check, reg_n, reg_d, Is, nn, nn_shifted);
-    switch (instruction) {
-        case 0x0:
-            Arithmetic_AND_Immediate(reg_d, reg_n, nn_shifted);
-            break;
-        case 0x1:
-            break;
-        case 0x2:
-            break;
-        case 0x3:
-            break;
-        case 0x4:
-            break;
-        case 0x5:
-            break;
-        case 0x6:
-            break;
-        case 0x7:
-            Arithmetic_RSC_Imm(reg_d, reg_n, nn_shifted);
-            break;
-        case 0x8:
-            break;
-        case 0x9:
-            break;
-        case 0xa:
-            Arithmetic_CMP(reg_d, nn_shifted, immediate);
-            break;
-
+           "nn_shifted: 0x%08x\n", condition, check, reg_n, gpr.registers[reg_n].data, reg_d,
+           gpr.registers[reg_n].data, Is, nn, nn_shifted);
+    bool pass_condition = check_condition(condition_alias);
+    if (pass_condition) {
+        switch (instruction) {
+            case 0x0:
+                Arithmetic_AND_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0x1:
+                Arithmetic_EOR_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0x2:
+                Arithmetic_SUB_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0x3:
+                Arithmetic_RSB_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0x4:
+                Arithmetic_ADD_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0x5:
+                Arithmetic_ADC_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0x6:
+                Arithmetic_SBC_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0x7:
+                Arithmetic_RSC_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0x8:
+                Arithmetic_TST_Immediate(reg_n, nn_shifted);
+                break;
+            case 0x9:
+                Arithmetic_TEQ_Immediate(reg_n, nn_shifted);
+                break;
+            case 0xa:
+                Arithmetic_CMP_Immediate(reg_n, nn_shifted);
+                break;
+            case 0xb:
+                Arithmetic_CMN_Immediate(reg_n, nn_shifted);
+                break;
+            case 0xc:
+                Arithmetic_ORR_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0xd:
+                Arithmetic_MOV_Immediate(reg_d, nn_shifted);
+                break;
+            case 0xe:
+                Arithmetic_BIC_Immediate(reg_d, reg_n, nn_shifted);
+                break;
+            case 0xf:
+                Arithmetic_MVN_Immediate(reg_n, nn_shifted);
+                break;
+        }
     }
 }
 
@@ -681,6 +818,4 @@ void decode(ARM_U_WORD opcode) {
                     unknown_opcode(opcode);
             }
     }
-
-
 }

@@ -10,8 +10,14 @@ void init_cpu() {
     init_current_program_status_register();
     init_exception_vector_table();
     cpu_init_log();
+    gpr_clear();
+    clear_all_mem();
 
-
+}
+void clear_all_mem() {
+    for(ARM_U_WORD i =0; i < MAX_MEM; i += sizeof(ARM_U_BYTE)) {
+        MEMORY[i] = 0;
+    }
 }
 
 void init_general_registers() {

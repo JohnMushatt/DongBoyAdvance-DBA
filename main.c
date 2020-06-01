@@ -26,10 +26,7 @@
 #endif
 
 int main(int argc, char **argv) {
-
-
 #ifdef _BUILD_WITH_TESTING
-
     master_test_suite();
 #endif
 

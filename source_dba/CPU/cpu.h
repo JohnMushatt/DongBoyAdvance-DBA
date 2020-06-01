@@ -255,9 +255,9 @@ ARM_U_BYTE MEMORY[MAX_MEM];
 
 typedef enum {
     BYTE, HALF_WORD, WORD, DOUBLE_WORD
-} Write_Mode;
-
-typedef Write_Mode Read_Mode;
+} Alignment;
+typedef Alignment Write_Mode;
+typedef Alignment Read_Mode;
 
 void set_memory_range_random(ARM_U_WORD starting_address, ARM_U_WORD size, Write_Mode mode);
 
@@ -265,8 +265,14 @@ void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode);
 
 void view_address(ARM_U_WORD address, Read_Mode mode);
 
+ARM_U_WORD read_memory(ARM_U_WORD, Read_Mode mode);
+
 ARM_U_WORD get_word(ARM_U_WORD address);
+
+ARM_U_WORD get_byte(ARM_U_WORD address);
+
 void clear_all_mem();
+
 /***********************************************
  * Registers begin
  *
@@ -304,6 +310,7 @@ void init_current_program_status_register();
 *
 ***********************************************/
 void zero_reg(int reg, ...);
+
 void set_reg(ARM_U_WORD reg, ARM_U_WORD value);
 
 /**

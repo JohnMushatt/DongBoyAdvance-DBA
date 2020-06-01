@@ -177,7 +177,23 @@ void view_address(ARM_U_WORD address, Read_Mode mode) {
             break;
     }
 }
+ARM_U_WORD read_memory(ARM_U_WORD address,Read_Mode mode) {
+    ARM_U_WORD data;
+    switch (mode) {
 
+        case BYTE:
+            data=get_byte(address);
+            break;
+        case HALF_WORD:
+            break;
+        case WORD:
+            data=get_word(address);
+            break;
+        case DOUBLE_WORD:
+            break;
+    }
+    return data;
+}
 ARM_U_WORD get_word(ARM_U_WORD address) {
     ARM_U_WORD query = MEMORY[address];
     query |= MEMORY[address + 1] << 8;

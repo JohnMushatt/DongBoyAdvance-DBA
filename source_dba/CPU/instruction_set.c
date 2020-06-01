@@ -424,9 +424,11 @@ void TransImm9(ARM_U_WORD opcode) {
 
     char Bit_21_String[128];
     if (P) {
-        sprintf(Bit_21_String, "W: %s;write-back is OPTIONAL", Write_Back ? "write address into base" : "no write-back");
+        sprintf(Bit_21_String, "W: %s;write-back is OPTIONAL",
+                Write_Back ? "write address into base" : "no write-back");
     } else {
-        sprintf(Bit_21_String, "T: %s;write-back is ALWAYS enabled", Memory_Management ? "1=Force non-privileged access" : "0=Normal");
+        sprintf(Bit_21_String, "T: %s;write-back is ALWAYS enabled",
+                Memory_Management ? "1=Force non-privileged access" : "0=Normal");
     }
     printf("Opcode: [TransImm9|0x%08x]\nBinary Format:\n", opcode);
     print_binary(opcode);
@@ -452,14 +454,41 @@ void TransImm9(ARM_U_WORD opcode) {
            reg_n, gpr.registers[reg_n].data, reg_d,
            gpr.registers[reg_n].data, Offset);
     bool pass_condition = check_condition(condition_alias);
-    if (pass_condition) {
-        switch ((ARM_U_BYTE)L) {
-            case false:
+    Alignment alignment = B ? BYTE : WORD;
+    ARM_U_WORD offset_addr;
+    ARM_U_WORD address;
+    ARM_U_WORD data;
+    if (true) {
+        /**
+         * Up/Down check
+         */
+        if (U) {
+            offset_addr = gpr.registers[reg_n].data + Offset;
+        } else {
+            offset_addr = gpr.registers[reg_n].data - Offset;
+        }
+        /**
+         * Index check
+         */
+        if (P) {
+            address = offset_addr;
+        } else {
+            address = gpr.registers[reg_n].data;
+        }
+        switch ((ARM_U_BYTE) L) {
+            case 0x0:
+
+                write_memory(address, gpr.registers[reg_d].data, alignment);
+
                 break;
-            case true:
+            case 0x1:
+                gpr.registers[reg_d].data = read_memory(address, alignment);
                 break;
             default:
                 break;
+        }
+        if (Write_Back) {
+            gpr.registers[reg_n].data = offset_addr;
         }
     }
 }

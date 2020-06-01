@@ -24,8 +24,8 @@ typedef int8_t ARM_S_BYTE;
 /**
  * Important Memory Address Definitions
  */
-#define EXCEPTION_BASE (ARMWORD) 0x00000000
-
+#define EXCEPTION_BASE  0x00000000
+#define GAME_DATA_BEGIN 0x08000000
 typedef struct _general_purpose_register {
     ARM_U_WORD data;
 } General_Purpose_Register;
@@ -258,7 +258,7 @@ typedef enum {
 } Alignment;
 typedef Alignment Write_Mode;
 typedef Alignment Read_Mode;
-
+ARM_U_WORD fetch_opcode_memory();
 void set_memory_range_random(ARM_U_WORD starting_address, ARM_U_WORD size, Write_Mode mode);
 
 void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode);
@@ -299,7 +299,7 @@ void init_cpu();
 void init_general_registers();
 
 void init_conditional_flags();
-
+void init_pc();
 void init_current_program_status_register();
 /***********************************************
  * Init routine section end
@@ -313,6 +313,8 @@ void zero_reg(int reg, ...);
 
 void set_reg(ARM_U_WORD reg, ARM_U_WORD value);
 
+void set_pc(ARM_U_WORD address);
+void set_lr(ARM_U_WORD address);
 /**
  * CPSR Functions
  */

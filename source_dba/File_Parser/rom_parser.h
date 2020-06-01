@@ -18,11 +18,19 @@ typedef struct _rom_info {
     char *file_path;
     FILE *file;
     uint8_t *rom;
-    ARM_U_WORD current_opcode;
+    int32_t current_opcode;
 } Rom_Info;
 Rom_Info *rom_info;
-
+typedef struct _bios {
+    int64_t bios_size;
+    char *bios_path;
+    FILE *file;
+    uint8_t *bios;
+    int32_t current_opcode;
+} Bios;
+Bios *bios;
 void read_rom();
+void load_bios();
 ARM_U_WORD fetch_opcode();
 uint32_t to_pow2(uint32_t val);
 void destroy_rom();

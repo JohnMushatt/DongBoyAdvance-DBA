@@ -12,7 +12,7 @@ void init_cpu() {
     cpu_init_log();
     gpr_clear();
     clear_all_mem();
-
+    init_pc();
 }
 void clear_all_mem() {
     for(ARM_U_WORD i =0; i < MAX_MEM; i += sizeof(ARM_U_BYTE)) {
@@ -40,7 +40,9 @@ void init_current_program_status_register() {
 
     cpsr_clear();
 }
-
+void init_pc() {
+    pc.r15.data = 0x08000000;
+}
 void cpsr_clear() {
     cpsr.status = 0;
 }
@@ -63,6 +65,14 @@ void set_reg(ARM_U_WORD reg, ARM_U_WORD val) {
     gpr.registers[reg].data = val;
 }
 
+void set_pc(ARM_U_WORD address) {
+    printf("Program counter updated: 0x%08x -> 0x%08x\n",pc.r15.data,address);
+    pc.r15.data=address;
+}
+void set_lr(ARM_U_WORD address) {
+    printf("Link register updated: 0x%08x -> 0x%08x\n",lr.r14.data,address);
+    lr.r14.data=address;
+}
 void init_exception_vector_table() {
     /**
      * Reset vector
@@ -129,8 +139,13 @@ void init_exception_vector_table() {
     exception_vector_table.Fast_Interrupt_FIQ.priority = 3;
     exception_vector_table.Fast_Interrupt_FIQ.mode_on_entry = _fiq;
 }
-
+ARM_U_WORD fetch_opcode_memory() {
+    ARM_U_WORD address = pc.r15.data;
+    ARM_U_WORD opcode = read_memory(address,WORD);
+    return opcode;
+}
 void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode) {
+    debug_assert(MAX_MEM - address>=0,"Invalid memory write");
     ARM_U_WORD temp;
     switch (mode) {
         case BYTE:
@@ -147,6 +162,9 @@ void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode) {
             MEMORY[address + 2] = (val & 0xff);
             val >>= 8;
             MEMORY[address + 3] = (val & 0xff);
+            if(log_level==MEM) {
+                view_address(address,WORD);
+            }
             break;
         case DOUBLE_WORD:
             break;

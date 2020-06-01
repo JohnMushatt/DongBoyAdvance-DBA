@@ -12,6 +12,10 @@
 #include <cpu.h>
 #include <unistd.h>
 #include <assert.h>
+typedef enum {
+    NORMAL,OPCODE,MEM
+} Log_level;
+Log_level log_level;
 /**
  * Error struct
  */

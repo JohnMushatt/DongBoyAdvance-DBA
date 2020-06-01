@@ -27,13 +27,33 @@ void read_rom() {
     rom_info->current_opcode = 0;
     fclose(rom_info->file);
     printf("Bytes read from rom: %ld\n", rom_info->rom_size);
+    while(rom_info->current_opcode < rom_info->rom_size) {
+        ARM_U_WORD current_address = 0x08000000 + rom_info->current_opcode;
+        ARM_U_WORD current_opcode = fetch_opcode();
+        write_memory(current_address,current_opcode,WORD);
+        //rom_info->current_opcode+=4;
+    }
+    rom_info->current_opcode=0;
 }
+void load_bios() {
+    bios = (Bios *) malloc(sizeof(Bios));
+    bios->bios_path = (char *) malloc(sizeof(char) *256);
+    strcpy(bios->bios_path,"C:\\Users\\johnm\\Desktop\\DongBoyAdvance-DBA\\BIOS\\GBA.BIOS");
+    bios->file = fopen(bios->bios_path,"rb");
+    fseek(bios->file,0,SEEK_END);
+    bios->bios_size = ftell(bios->file);
+    printf("Bios size (bytes): %ld\n",bios->bios_size);
+    bios->bios = (uint8_t *) malloc(sizeof(uint8_t) * bios->bios_size);
+    fread(bios->bios,bios->bios_size,1,bios->file);
+    bios->current_opcode = 0;
+    fclose(bios->file);
 
+}
 ARM_U_WORD fetch_opcode() {
-    ARM_U_WORD opcode = rom_info->rom[rom_info->current_opcode] << 24;
-    opcode |= rom_info->rom[rom_info->current_opcode + 1] << 16;
-    opcode |= rom_info->rom[rom_info->current_opcode + 2] << 8;
-    opcode |= rom_info->rom[rom_info->current_opcode + 3];
+    ARM_U_WORD opcode = rom_info->rom[rom_info->current_opcode] << 0;
+    opcode |= rom_info->rom[rom_info->current_opcode + 1] << 8;
+    opcode |= rom_info->rom[rom_info->current_opcode + 2] << 16;
+    opcode |= rom_info->rom[rom_info->current_opcode + 3] << 24;
     rom_info->current_opcode += sizeof(ARM_U_WORD);
     return opcode;
 }

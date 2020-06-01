@@ -347,7 +347,44 @@ void CoDataTrans(ARM_U_WORD opcode) {
  * @param opcode 32-bit instruction to decode
  */
 void Branch(ARM_U_WORD opcode) {
-    printf("Branch occurs here\n");
+    ARM_U_WORD condition = (opcode & (BIT31 | BIT30 | BIT29 | BIT28)) >> 28;
+    Condition_Alias condition_alias = get_condition_alias(condition);
+
+    ARM_U_WORD check = (opcode & (BIT27 | BIT26 | BIT25)) >> 25;
+
+    debug_assert(check == 0x5, "Check must be 0x5 for this instruction");
+    ARM_U_WORD branch_type = (opcode & (BIT24)) >> 24;
+
+    ARM_S_WORD nn = (opcode & ~(BIT31 | BIT30 | BIT29 | BIT28 | BIT27 | BIT26 | BIT25 | BIT24));
+    ARM_U_WORD address = pc.r15.data + 8 + (nn * 4);
+    char branch_string[128];
+
+    if(branch_type) {
+        sprintf(branch_string,"Branch with Link; PC: 0x%08x -> 0x%08x, LR: 0x%08x",pc.r15.data,address,pc.r15.data+4);
+    }
+    else {
+        sprintf(branch_string,"Branch; PC: 0x%08x -> 0x%08x",pc.r15.data,address);
+    }
+    printf("Opcode: [Branch|0x%08x\nBinary format:\n", opcode);
+    print_binary(opcode);
+    printf("Condition: 0x%x\n"
+           "Check: 0x%x\n"
+           "%s\n",
+           condition,
+           check,
+           branch_string);
+    bool pass_condition = check_condition(condition_alias);
+    if (pass_condition) {
+        switch (branch_type) {
+            case 0x0:
+                set_pc(address);
+                break;
+            case 0x1:
+                set_lr(pc.r15.data + 4);
+                set_pc(address);
+                break;
+        }
+    }
 }
 
 /**

@@ -40,12 +40,14 @@ int main(int argc, char **argv) {
     pthread_create(&pid, NULL, &begin_debug, (void *) process_info);
 
 #endif
-
-    read_rom();
+    log_level=NORMAL;
     init_cpu();
+
+    load_bios();
+    read_rom();
     ARM_U_WORD opcode;
     while (rom_info->current_opcode < rom_info->rom_size) {
-        opcode = fetch_opcode();
+        opcode = fetch_opcode_memory();
         decode(opcode);
     }
     destroy_rom();

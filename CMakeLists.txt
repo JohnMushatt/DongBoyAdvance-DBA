@@ -9,8 +9,8 @@ set(HELP_MSG "Email john.mushatt@gmail.com and hope he can fix it")
 set(CPU_SRC ${CMAKE_CURRENT_SOURCE_DIR}/CPU)
 #Set log source
 set(LOG_SRC ${CMAKE_CURRENT_SOURCE_DIR}/log)
-#Set Rom parsing source
-set(ROM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/ROM_Parser)
+#Set File parsing source
+set(FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/File_Parser)
 #Set Test source
 set(TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Tests)
 set(TEST_CPU_SRC ${TEST_SRC}/CPU)
@@ -55,6 +55,6 @@ else ()
     message(STATUS "Building without tests")
 endif ()
 add_executable(${EXE_NAME} main.c ${DBA_SRC})
-target_include_directories(${EXE_NAME} PRIVATE ${LOG_SRC} ${CPU_SRC} ${ROM_SRC} ${TEST_MASTER_SRC} ${TEST_CPU_SRC} ${TEST_INSTRUCTION_SRC})
+target_include_directories(${EXE_NAME} PRIVATE ${LOG_SRC} ${CPU_SRC} ${FILE_SRC} ${TEST_MASTER_SRC} ${TEST_CPU_SRC} ${TEST_INSTRUCTION_SRC})
 
 target_link_libraries(${EXE_NAME} )

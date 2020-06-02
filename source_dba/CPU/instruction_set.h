@@ -7,7 +7,9 @@
 
 #include "cpu.h"
 #include "logger.h"
-
+#include "assert.h"
+#ifndef BIT_MACROS
+#define BIT_MACROS
 #define BIT0 1 << 0
 #define BIT1 1 << 1
 #define BIT2 1 << 2
@@ -40,18 +42,8 @@
 #define BIT29 1 << 29
 #define BIT30 1 << 30
 #define BIT31 1 << 31
+#endif
 
-
-
-typedef enum {
-    ADD, SUB, CMP
-} Instruction_Type;
-typedef struct _instruction {
-    Instruction_Type type;
-    ARM_U_WORD destination;
-    ARM_U_WORD operand1;
-    ARM_U_WORD operand2;
-} Instruction;
 /**
 Opcode Format
   Bit    Expl.
@@ -93,42 +85,45 @@ Opcode Format
     11-8   Is - ROR-Shift applied to nn (0-30, in steps of 2)
     7-0    nn - 2nd Operand Unsigned 8bit Immediate
    */
-typedef union _opcode_ALU {
-    ARM_U_WORD word;
-    struct {
-        ARM_U_WORD nn : 8; //nn - 2nd Operand Unsigned 8bit Immediate
-        ARM_U_WORD Is : 4;
-        ARM_U_WORD Rm;
-    };
-} Opcode_ALU;
 typedef enum {
-    EQ, NE, CS, HS, CC, LO, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, AL
+    AND,XOR,SUB,RSB,ADD,ADC,SBC,RSC,TST,TEQ,CMP,CMN,ORR,MOV,BIC,MVN
+} ALU_Opcode_Alias;
+ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode);
+typedef enum {
+    EQ, NE, CS, CC, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, AL
 } Branch_Condition;
+typedef Branch_Condition Condition_Alias;
+Condition_Alias get_condition_alias(ARM_U_WORD opcode);
 
 void decode(ARM_U_WORD opcode);
-
-void Logical_MOV(ARM_U_WORD reg_d, ARM_U_WORD op2);
-
-void Logical_MVN(ARM_U_WORD reg_d, ARM_U_WORD op2);
-
+bool current_condition_flag;
+void update_condition_flag(bool condition_flag);
 /**
  * Arithmetic Instructions
  */
-//TODO VERY IMPORTANT, THESE INSTRUCTIONS NEED TO UPDATE NZCV FLAGS!!
-/**
- * @todo Verify that add, addc, sub, and cmp correctly update flags
- * @body Verify that the above functions correctly modify status flags
- */
-void Arithmetic_ADD(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
+ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount);
+ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate);
+void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_RSB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_ADC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_SBC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_RSC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_TST_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_TEQ_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_CMP_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_CMN_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d,ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_MOV_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2);
+void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d,ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_MVN_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2);
 
-void Arithmetic_ADDC(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
-
-void Arithmetic_SUB(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD op2);
 /**
  * AND Instructions
  */
 //2nd operand is immediate version
-void Arithmetic_AND_Immediate(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD immediate);
 
 void Arithmetic_ANDS_Immediate(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_WORD immediate);
 
@@ -148,34 +143,58 @@ bool check_condition(Branch_Condition condition);
 
 
 void software_interrupt(ARM_U_WORD opcode);
+
 void CoRegTrans(ARM_U_WORD opcode);
+
 void CoDataOp(ARM_U_WORD opcode);
+
 void CoDataTrans(ARM_U_WORD opcode);
+
 void Branch(ARM_U_WORD opcode);
+
 void BranchExchange(ARM_U_WORD opcode);
+
 void BlockTrans(ARM_U_WORD opcode);
+
 void TransReg9(ARM_U_WORD opcode);
+
 void TransImm9(ARM_U_WORD opcode);
+
 void TransImm10(ARM_U_WORD opcode);
+
 void TransReg10(ARM_U_WORD opcode);
+
 void TransSwp12(ARM_U_WORD opcode);
+
 void MulLong(ARM_U_WORD opcode);
+
 void Multiply(ARM_U_WORD opcode);
+
 void PSR_Reg(ARM_U_WORD opcode);
+
 void PSR_Imm(ARM_U_WORD opcode);
+
+void DataProc_Imm(ARM_U_WORD opcode);
+
+void DataProc_Reg(ARM_U_WORD opcode);
+
+void DataProc_Shift(ARM_U_WORD opcode);
+
 void unknown_opcode(ARM_U_WORD opcode);
+
 void undefined_opcode(ARM_U_WORD opcode);
+
 /**
  * @todo Check to see if CMP correctly sets overflow and carry flags
  * @body Make sure CMP correctly sets the properly flags when there is
  * a overflow/carry result
  */
-void Arithmetic_CMP(ARM_U_WORD reg_d, ARM_U_WORD op2, bool immediate);
+void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate);
 
 
 /**
  * Update the condition flags from the given ARM_U_WORD (uint32_t)
  */
 void update_condition_flags(ARM_U_WORD flags);
-
+void print_binary(ARM_U_WORD opcode);
 #endif //DONGBOYADVANCE_INSTRUCTION_SET_H

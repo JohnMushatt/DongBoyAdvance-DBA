@@ -56,7 +56,12 @@ void print_gen_reg() {
     printf("%5s[0x%08x]\n", "r12: ", gpr.registers[12].data);
 
 }
-
+void print_all_registers() {
+    print_gen_reg();
+    print_program_counter();
+    print_stack_pointer();
+    print_cpsr();
+}
 //TODO Update to use format specifiers
 void print_cond_flag() {
     printf("----------------Conditional Flags init values----------------\n");
@@ -86,9 +91,17 @@ void print_cond_flag() {
 
 void print_cpsr() {
     printf("----------------Current Program Status Register (CPSR)----------------\n");
-    printf("N - Sign Flag: [%d] ---- (0=Not Signed, 1=Signed)\n", cpsr.N_Sign_flag);
-    printf("Z - Zero Flag: [%d] ---- (0=Not Zero, 1=Zero)  \n", cpsr.Z_Zero_flag);
-    printf("C - Carry Flag: [%d]\n", cpsr.C_Carry_flag);
+    printf("Flags: [%s%s%s%s%s%s%s]\n",
+            cpsr.N_Sign_flag ? "N":"-",
+            cpsr.Z_Zero_flag ? "Z":"-",
+            cpsr.C_Carry_flag ? "C":"-",
+           cpsr.V_Overflow_flag ? "V":"-",
+           cpsr.Q_Sticky_overflow ? "Q":"-",
+           cpsr.I_IQR_disable ?"I":"-",
+            cpsr.F_FIQ_disable ? "F":"-");
+   // printf("%10s: %d","N - Sign Flag: [%d]", cpsr.N_Sign_flag);
+    //printf("Z - Zero Flag: [%d] ---- (0=Not Zero, 1=Zero)  \n", cpsr.Z_Zero_flag);
+    //printf("C - Carry Flag: [%d]\n", cpsr.C_Carry_flag);
 
 }
 
@@ -102,4 +115,10 @@ void log_msg(General_Message msg) {
     time_t now;
     time(&now);
     printf("Instruction: %s @ time: %s\n%s",msg.instruction_name,ctime(&now),msg.log);
+}
+void debug_assert(bool expr, const char *msg) {
+    if (!expr) {
+        fprintf(stderr, "%s\n", msg);
+        assert(expr);
+    }
 }

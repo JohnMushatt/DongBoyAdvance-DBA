@@ -20,30 +20,13 @@
  */
 #ifdef _DEBUG_MODE
 
-void print_binary(ARM_U_WORD opcode) {
-    for (ARM_U_WORD i = 1 << 31; i > 0; i = i / 2) {
-        (opcode & i) ? printf("1  ") : printf("0  ");
-    }
-    printf("\n");
-    for (ARM_S_WORD i = 31; i >= 0; i--) {
-        if (i < 10) {
-            printf("%d  ", i);
-        } else {
-            printf("%d ", i);
-        }
-    }
-    printf("\n");
-}
+
 
 #include "debugger.h"
-//#include "cpu
 #endif
 
 int main(int argc, char **argv) {
-
-
 #ifdef _BUILD_WITH_TESTING
-
     master_test_suite();
 #endif
 
@@ -57,15 +40,14 @@ int main(int argc, char **argv) {
     pthread_create(&pid, NULL, &begin_debug, (void *) process_info);
 
 #endif
-
-    read_rom();
+    log_level|=LOG_NORMAL |  LOG_REGISTER;
     init_cpu();
-    bool done = false;
+
+    load_bios();
+    read_rom();
     ARM_U_WORD opcode;
-    char op_code_in_binary[33];
     while (rom_info->current_opcode < rom_info->rom_size) {
-        opcode = fetch_opcode();
-        print_binary(opcode);
+        opcode = fetch_opcode_memory();
         decode(opcode);
     }
     destroy_rom();

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
-project(DongBoyAdvance VERSION 1.0.1 LANGUAGES C)
+project(DongBoyAdvance VERSION 1.0.2 LANGUAGES C)
 
 set(CMAKE_BUILD_TYPE DEBUG)
 set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source_dba)
@@ -9,8 +9,8 @@ set(HELP_MSG "Email john.mushatt@gmail.com and hope he can fix it")
 set(CPU_SRC ${CMAKE_CURRENT_SOURCE_DIR}/CPU)
 #Set log source
 set(LOG_SRC ${CMAKE_CURRENT_SOURCE_DIR}/log)
-#Set Rom parsing source
-set(ROM_SRC ${CMAKE_CURRENT_SOURCE_DIR}/ROM_Parser)
+#Set File parsing source
+set(FILE_SRC ${CMAKE_CURRENT_SOURCE_DIR}/File_Parser)
 #Set Test source
 set(TEST_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Tests)
 set(TEST_CPU_SRC ${TEST_SRC}/CPU)
@@ -35,7 +35,7 @@ find_package(Curses REQUIRED)
 include_directories(${CURSES_INCLUDE_DIR})
 
 if (${CMAKE_BUILD_TYPE} MATCHES "DEBUG")
-    ADD_DEFINITIONS(-D_DEBUG_MODE)
+    #ADD_DEFINITIONS(-D_DEBUG_MODE)
     message(STATUS "Debug Mode")
 else ()
     message(STATUS "Release Mode")
@@ -47,7 +47,7 @@ else ()
     message(STATUS "Cygwin not found!")
 
 endif ()
-set(TEST_MODE TRUE)
+set(TEST_MODE FALSE)
 if (${TEST_MODE})
     message(STATUS "Building with tests")
     ADD_DEFINITIONS(-D_BUILD_WITH_TESTING)
@@ -55,6 +55,6 @@ else ()
     message(STATUS "Building without tests")
 endif ()
 add_executable(${EXE_NAME} main.c ${DBA_SRC})
-target_include_directories(${EXE_NAME} PRIVATE ${LOG_SRC} ${CPU_SRC} ${ROM_SRC} ${TEST_MASTER_SRC} ${TEST_CPU_SRC} ${TEST_INSTRUCTION_SRC})
+target_include_directories(${EXE_NAME} PRIVATE ${LOG_SRC} ${CPU_SRC} ${FILE_SRC} ${TEST_MASTER_SRC} ${TEST_CPU_SRC} ${TEST_INSTRUCTION_SRC})
 
 target_link_libraries(${EXE_NAME} )

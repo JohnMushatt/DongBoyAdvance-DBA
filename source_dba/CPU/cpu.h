@@ -315,6 +315,7 @@ void set_reg(ARM_U_WORD reg, ARM_U_WORD value);
 
 void set_pc(ARM_U_WORD address);
 void set_lr(ARM_U_WORD address);
+ARM_U_WORD get_reg_data(ARM_U_WORD reg);
 /**
  * CPSR Functions
  */

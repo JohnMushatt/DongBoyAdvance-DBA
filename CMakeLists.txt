@@ -47,7 +47,7 @@ else ()
     message(STATUS "Cygwin not found!")
 
 endif ()
-set(TEST_MODE TRUE)
+set(TEST_MODE FALSE)
 if (${TEST_MODE})
     message(STATUS "Building with tests")
     ADD_DEFINITIONS(-D_BUILD_WITH_TESTING)

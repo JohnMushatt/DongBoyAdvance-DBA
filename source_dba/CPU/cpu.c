@@ -9,13 +9,13 @@ void init_cpu() {
     init_conditional_flags();
     init_current_program_status_register();
     init_exception_vector_table();
-    cpu_init_log();
     gpr_clear();
     clear_all_mem();
     init_pc();
 }
+
 void clear_all_mem() {
-    for(ARM_U_WORD i =0; i < MAX_MEM; i += sizeof(ARM_U_BYTE)) {
+    for (ARM_U_WORD i = 0; i < MAX_MEM; i += sizeof(ARM_U_BYTE)) {
         MEMORY[i] = 0;
     }
 }
@@ -40,9 +40,11 @@ void init_current_program_status_register() {
 
     cpsr_clear();
 }
+
 void init_pc() {
     pc.r15.data = 0x08000000;
 }
+
 void cpsr_clear() {
     cpsr.status = 0;
 }
@@ -62,17 +64,37 @@ void zero_reg(int reg, ...) {
 }
 
 void set_reg(ARM_U_WORD reg, ARM_U_WORD val) {
-    gpr.registers[reg].data = val;
+    if (reg >= 0 || reg <= 13) {
+        gpr.registers[reg].data = val;
+    } else if (reg == 13) {
+        sp.r13.data = val;
+    } else if (reg == 14) {
+        lr.r14.data = val;
+    } else if (reg == 15) {
+        pc.r15.data = val;
+    }
+}
+ARM_U_WORD get_reg_data(ARM_U_WORD reg) {
+    if (reg >= 0 || reg <= 12) {
+       return gpr.registers[reg].data;
+    } else if (reg == 13) {
+        return sp.r13.data;
+    } else if (reg == 14) {
+        return lr.r14.data;
+    } else if (reg == 15) {
+        return pc.r15.data;
+    }
+}
+void set_pc(ARM_U_WORD address) {
+    printf("Program counter updated: 0x%08x -> 0x%08x\n", pc.r15.data, address);
+    pc.r15.data = address;
 }
 
-void set_pc(ARM_U_WORD address) {
-    printf("Program counter updated: 0x%08x -> 0x%08x\n",pc.r15.data,address);
-    pc.r15.data=address;
-}
 void set_lr(ARM_U_WORD address) {
-    printf("Link register updated: 0x%08x -> 0x%08x\n",lr.r14.data,address);
-    lr.r14.data=address;
+    printf("Link register updated: 0x%08x -> 0x%08x\n", lr.r14.data, address);
+    lr.r14.data = address;
 }
+
 void init_exception_vector_table() {
     /**
      * Reset vector
@@ -139,13 +161,16 @@ void init_exception_vector_table() {
     exception_vector_table.Fast_Interrupt_FIQ.priority = 3;
     exception_vector_table.Fast_Interrupt_FIQ.mode_on_entry = _fiq;
 }
+
 ARM_U_WORD fetch_opcode_memory() {
     ARM_U_WORD address = pc.r15.data;
-    ARM_U_WORD opcode = read_memory(address,WORD);
+    ARM_U_WORD opcode = read_memory(address, WORD);
+    //set_pc(pc.r15.data + 4);
     return opcode;
 }
+
 void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode) {
-    debug_assert(MAX_MEM - address>=0,"Invalid memory write");
+    debug_assert(MAX_MEM - address >= 0, "Invalid memory write");
     ARM_U_WORD temp;
     switch (mode) {
         case BYTE:
@@ -162,8 +187,8 @@ void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode) {
             MEMORY[address + 2] = (val & 0xff);
             val >>= 8;
             MEMORY[address + 3] = (val & 0xff);
-            if(log_level==MEM) {
-                view_address(address,WORD);
+            if (log_level & LOG_MEM) {
+                view_address(address, WORD);
             }
             break;
         case DOUBLE_WORD:
@@ -195,23 +220,25 @@ void view_address(ARM_U_WORD address, Read_Mode mode) {
             break;
     }
 }
-ARM_U_WORD read_memory(ARM_U_WORD address,Read_Mode mode) {
+
+ARM_U_WORD read_memory(ARM_U_WORD address, Read_Mode mode) {
     ARM_U_WORD data;
     switch (mode) {
 
         case BYTE:
-            data=get_byte(address);
+            data = get_byte(address);
             break;
         case HALF_WORD:
             break;
         case WORD:
-            data=get_word(address);
+            data = get_word(address);
             break;
         case DOUBLE_WORD:
             break;
     }
     return data;
 }
+
 ARM_U_WORD get_word(ARM_U_WORD address) {
     ARM_U_WORD query = MEMORY[address];
     query |= MEMORY[address + 1] << 8;
@@ -219,10 +246,12 @@ ARM_U_WORD get_word(ARM_U_WORD address) {
     query |= MEMORY[address + 3] << 24;
     return query;
 }
+
 ARM_U_WORD get_byte(ARM_U_WORD address) {
     ARM_U_WORD query = MEMORY[address];
     return query;
 }
+
 /***
  *
  * @param starting_address Address to begin filling with random values

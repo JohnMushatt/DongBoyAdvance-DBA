@@ -42,7 +42,6 @@
 #define BIT29 1 << 29
 #define BIT30 1 << 30
 #define BIT31 1 << 31
-
 #endif
 
 /**

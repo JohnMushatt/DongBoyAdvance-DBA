@@ -8,3 +8,5 @@ roms/Emerald
 DongBoyAdvance_Debugger/.idea
 DongBoyAdvance_Debugger/cmake-build-debug
 shared_memory/
+app/.idea
+app/cmake-build-debug

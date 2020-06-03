@@ -22,12 +22,12 @@ void cpu_init_log() {
 
 void print_program_counter() {
     printf("----------------Program Counter (PC)----------------\n");
-    printf("r15: [0x%08x] ---> [0x%08x]\n", pc.r15.data, MEMORY[pc.r15.data]);
+    printf("r15: [0x%08x] ---> [0x%08x]\n", pc.r15.data, read_memory(pc.r15.data, WORD));
 }
 
 void print_stack_pointer() {
     printf("----------------Stack Pointer (SP)----------------\n");
-    printf("r14: [0x%08x] ---> [0x%08x]\n", sp.r13.data, MEMORY[sp.r13.data]);
+    printf("r13: [0x%08x] ---> [0x%08x]\n", sp.r13.data, MEMORY[sp.r13.data]);
 }
 
 void print_link_register() {
@@ -40,7 +40,6 @@ void log_err(Error_Message err) {
 }
 
 void print_gen_reg() {
-    printf("----------------General Purpose Registers (GPR)----------------\n");
     printf("%5s[0x%08x]", "r0: ", gpr.registers[0].data);
     printf("%8s[0x%08x]", "r1: ", gpr.registers[1].data);
     printf("%8s[0x%08x]\n", "r2: ", gpr.registers[2].data);
@@ -53,13 +52,18 @@ void print_gen_reg() {
     printf("%5s[0x%08x]", "r9: ", gpr.registers[9].data);
     printf("%8s[0x%08x]", "r10: ", gpr.registers[10].data);
     printf("%8s[0x%08x]\n", "r11: ", gpr.registers[11].data);
-    printf("%5s[0x%08x]\n", "r12: ", gpr.registers[12].data);
+    printf("%5s[0x%08x]", "r13: ", sp.r13.data);
+    printf("%8s[0x%08x]", "r14: ", lr.r14.data);
+    printf("%8s[0x%08x]\n", "r15: ",pc.r15.data+4);
+
 
 }
 void print_all_registers() {
     print_gen_reg();
-    print_program_counter();
     print_stack_pointer();
+    print_link_register();
+    print_program_counter();
+
     print_cpsr();
 }
 //TODO Update to use format specifiers
@@ -90,8 +94,7 @@ void print_cond_flag() {
 //TODO Update to use format specifiers
 
 void print_cpsr() {
-    printf("----------------Current Program Status Register (CPSR)----------------\n");
-    printf("Flags: [%s%s%s%s%s%s%s]\n",
+    printf("cpsr: [%s%s%s%s%s%s%s]\n",
             cpsr.N_Sign_flag ? "N":"-",
             cpsr.Z_Zero_flag ? "Z":"-",
             cpsr.C_Carry_flag ? "C":"-",
@@ -99,10 +102,6 @@ void print_cpsr() {
            cpsr.Q_Sticky_overflow ? "Q":"-",
            cpsr.I_IQR_disable ?"I":"-",
             cpsr.F_FIQ_disable ? "F":"-");
-   // printf("%10s: %d","N - Sign Flag: [%d]", cpsr.N_Sign_flag);
-    //printf("Z - Zero Flag: [%d] ---- (0=Not Zero, 1=Zero)  \n", cpsr.Z_Zero_flag);
-    //printf("C - Carry Flag: [%d]\n", cpsr.C_Carry_flag);
-
 }
 
 void logger(const char *tag, const char *message) {

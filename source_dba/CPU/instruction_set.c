@@ -578,38 +578,39 @@ void TransImm9(ARM_U_WORD opcode) {
     ARM_U_WORD reg_d_data = get_reg_data(reg_d);
     ARM_U_WORD Offset = (opcode &
                          (BIT12 | BIT11 | BIT10 | BIT9 | BIT8 | BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
-
-    char Bit_21_String[128];
-    if (P) {
-        sprintf(Bit_21_String, "W: %s;write-back is OPTIONAL",
-                Write_Back ? "write address into base" : "no write-back");
-    } else {
-        sprintf(Bit_21_String, "T: %s;write-back is ALWAYS enabled",
-                Memory_Management ? "1=Force non-privileged access" : "0=Normal");
+    if (log_level & LOG_OPCODE) {
+        char Bit_21_String[128];
+        if (P) {
+            sprintf(Bit_21_String, "W: %s;write-back is OPTIONAL",
+                    Write_Back ? "write address into base" : "no write-back");
+        } else {
+            sprintf(Bit_21_String, "T: %s;write-back is ALWAYS enabled",
+                    Memory_Management ? "1=Force non-privileged access" : "0=Normal");
+        }
+        printf("Opcode: [TransImm9|0x%08x]\nBinary Format:\n", opcode);
+        print_binary(opcode);
+        printf("Condition: 0x%x\n"
+               "Check: 0x%x\n"
+               "I(Immediate Offset Flag): %s\n"
+               "P: %s\n"
+               "U: %s\n"
+               "B: %s\n"
+               "%s\n"
+               "L: %s\n"
+               "reg_n: %d reg_n.data=[0x%08x]\n"
+               "reg_d: %d reg_d.data=[0x%08x]\n"
+               "Offset: 0x%08x\n",
+               condition,
+               check,
+               Immediate_Offset_Flag ? "1=Shifted_Register" : "0=Immediate",
+               P ? "1=pre;add offset before transfer" : "0=post;add offset after transfer",
+               U ? "1=up;add offset to base" : "0=down;subtract offset from base",
+               B ? "1=transfer 8bit/byte" : "0=transfer 32bit/word",
+               Bit_21_String,
+               L ? "1=LDR -> Load from memory" : "0=STR -> Store to memory",
+               reg_n, reg_n_data, reg_d,
+               reg_d_data, Offset);
     }
-    printf("Opcode: [TransImm9|0x%08x]\nBinary Format:\n", opcode);
-    print_binary(opcode);
-    printf("Condition: 0x%x\n"
-           "Check: 0x%x\n"
-           "I(Immediate Offset Flag): %s\n"
-           "P: %s\n"
-           "U: %s\n"
-           "B: %s\n"
-           "%s\n"
-           "L: %s\n"
-           "reg_n: %d reg_n.data=[0x%08x]\n"
-           "reg_d: %d reg_d.data=[0x%08x]\n"
-           "Offset: 0x%08x\n",
-           condition,
-           check,
-           Immediate_Offset_Flag ? "1=Shifted_Register" : "0=Immediate",
-           P ? "1=pre;add offset before transfer" : "0=post;add offset after transfer",
-           U ? "1=up;add offset to base" : "0=down;subtract offset from base",
-           B ? "1=transfer 8bit/byte" : "0=transfer 32bit/word",
-           Bit_21_String,
-           L ? "1=LDR -> Load from memory" : "0=STR -> Store to memory",
-           reg_n, reg_n_data, reg_d,
-           reg_d_data, Offset);
     bool pass_condition = check_condition(condition_alias);
     Alignment alignment = B ? BYTE : WORD;
     ARM_U_WORD offset_addr;
@@ -696,14 +697,14 @@ void PSR_Reg(ARM_U_WORD opcode) {
 
     debug_assert(check_2 == 0x2, "Check_2 must be 0x2 for this instruction");
 
-    bool use_reg_d = (opcode & (BIT22)) >> 22;
+    bool register_mode = (opcode & (BIT22)) >> 22;
     bool OP = (opcode & (BIT21)) >> 21;
 
     bool check_3 = (opcode & (BIT20)) >> 20;
     debug_assert(check_3 == 0x0, "Check_3 must be 0x0 for this instruction");
 
     ARM_U_WORD reg_d, check_4;
-    bool f, s, x, c;
+    bool f = false, s = false, x = false, c = false;
     /**
      *  Opcode
            0: MRS{cond} Rd,Psr          ;Rd = Psr
@@ -712,29 +713,47 @@ void PSR_Reg(ARM_U_WORD opcode) {
     /**
      * @todo Add saved(banked) registers so that MSR/MRS instructions can function properly. @Critical, @Opcode
      */
-    if (OP) {
-        f = (opcode & (BIT19)) >> 19;
-        s = (opcode & (BIT18)) >> 18;
-        x = (opcode & (BIT17)) >> 17;
-        c = (opcode & (BIT16)) >> 16;
-        check_4 = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
-        debug_assert(check_4 == 0xf, "Check_4 must be 0xf for this instruction");
-        /**
-         * If immediate
-         */
-        if (I) {
-            ARM_U_WORD shift = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
-            ARM_U_WORD imm = (opcode & (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
-            ARM_U_WORD nn = ROR_Imm(imm, shift);
+    bool passed_condition = check_condition(condition_alias);
+    if (passed_condition) {
+        if (OP) {
+            /**
+             * MSR {cond} Psr{_field},Op; Psr[field] = Op
+             */
+            f = (opcode & (BIT19)) >> 19;
+            s = (opcode & (BIT18)) >> 18;
+            x = (opcode & (BIT17)) >> 17;
+            c = (opcode & (BIT16)) >> 16;
+            check_4 = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
+            debug_assert(check_4 == 0xf, "Check_4 must be 0xf for this instruction");
+            /**
+             * If immediate
+             */
+            if (I) {
+                ARM_U_WORD shift = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
+                ARM_U_WORD imm = (opcode & (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
+                ARM_U_WORD nn = ROR_Imm(imm, shift);
+
+            } else {
+                ARM_U_WORD reg_m = (opcode & (0xf)) >> 4;
+                if (log_level & LOG_INSTRUCTION) {
+
+                    printf("0x%08x: 0x%08x\tMSR %s _%s%s, %s\n",
+                           pc.r15.data,
+                           opcode,
+                           register_mode ? spsr_as_string() : "cpsr",
+                           f ? "f" : "_",
+                           c ? "c" : "_",
+                           register_as_string(reg_m));
+                }
+            }
         } else {
+            check_4 = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16;
+            debug_assert(check_4 == 0xf, "Check_4 must be 0xf for this instruction");
+            reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
 
         }
-    } else {
-        check_4 = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16;
-        debug_assert(check_4 == 0xf, "Check_4 must be 0xf for this instruction");
-        reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
-
     }
+    set_pc(pc.r15.data + 4);
 
 }
 
@@ -878,11 +897,11 @@ void DataProc_Imm(ARM_U_WORD opcode) {
     if (log_level & LOG_INSTRUCTION) {
         if ((instruction >= 0x0 && instruction <= 0x7) || instruction == 0xc || instruction == 0xe) {
             printf("0x%08x: 0x%08x\t%s %s %s,%s, #%d\n",
-                    pc.r15.data,
-                    opcode,
-                    ALU_as_astring(instruction),
-                    condition_as_string(condition_alias),
-                    register_as_string(reg_d),
+                   pc.r15.data,
+                   opcode,
+                   ALU_as_astring(instruction),
+                   condition_as_string(condition_alias),
+                   register_as_string(reg_d),
                    register_as_string(reg_n),
                    nn_shifted);
         } else if (instruction == 0xd || instruction == 0xf) {
@@ -891,7 +910,7 @@ void DataProc_Imm(ARM_U_WORD opcode) {
                    opcode,
                    ALU_as_astring(instruction),
                    condition_as_string(condition_alias),
-                   register_as_string(reg_d),nn_shifted);
+                   register_as_string(reg_d), nn_shifted);
         }
     }
     if (log_level & LOG_OPCODE) {
@@ -994,7 +1013,8 @@ void unknown_opcode(ARM_U_WORD opcode) {
 void decode(ARM_U_WORD opcode) {
 
     if (log_level & LOG_REGISTER) {
-        print_all_registers();
+        print_gen_reg();
+        print_cpsr();
     }
     ARM_U_WORD o_type = (opcode & (BIT27 | BIT26 | BIT25 | BIT24)) >> 24;
     /**

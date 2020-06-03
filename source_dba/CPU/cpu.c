@@ -340,3 +340,26 @@ char *register_as_string(ARM_U_WORD reg) {
     }
     return reg_string;
 }
+
+char *spsr_as_string() {
+    char *spsr_string = (char *) malloc(sizeof(ARM_U_BYTE) * 12);
+    switch (spsr.current_mode) {
+
+        case _svc:
+            strncpy(spsr_string,"SPSR_svc",12);
+            break;
+        case _und:
+            strncpy(spsr_string,"SPSR_und",12);
+            break;
+        case _abt:
+            strncpy(spsr_string,"SPSR_abt",12);
+            break;
+        case _iqr:
+            strncpy(spsr_string,"SPSR_iqr",12);
+            break;
+        case _fiq:
+            strncpy(spsr_string,"SPSR_fiq",12);
+            break;
+    }
+    return spsr_string;
+}

@@ -9,7 +9,7 @@
 #include <stdbool.h>
 #include "logger.h"
 #include <stdarg.h>
-
+#include <string.h>
 bool debug;
 typedef uint64_t ARM_U_DWORD;
 typedef uint32_t ARM_U_WORD;
@@ -292,6 +292,7 @@ Stack_Pointer sp;
 Program_Counter pc;
 Link_Register lr;
 char *register_as_string(ARM_U_WORD reg);
+char *spsr_as_string();
 /***********************************************
  * Registers end
  *

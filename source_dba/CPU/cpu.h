@@ -165,6 +165,15 @@ typedef union _cpsr {
 
 } CPSR;
 
+
+ARM_S_WORD get_current_SPSR(CPSR *cpsr);
+/**
+ * Mode or entry of the exception
+ */
+typedef enum {
+    _svc, _und, _abt, _iqr, _fiq
+} Current_Mode;
+
 /**
  * Saved Program Status Registers (SPSR_<mode>)
    Additionally to above CPSR, five Saved Program Status Registers exist:
@@ -177,16 +186,13 @@ typedef union _cpsr {
  */
 //TODO Figure out what to put in the struct
 typedef struct _spsr {
-    General_Purpose_Register spsr;
+    CPSR SPSR_fiq;
+    CPSR SPSR_svc;
+    CPSR SPSR_abt;
+    CPSR SPSR_irq;
+    CPSR SPSR_und;
+    Current_Mode current_mode;
 } SPSR;
-
-/**
- * Mode or entry of the exception
- */
-typedef enum {
-    _svc, _und, _abt, _iqr, _fiq
-} Mode_on_Entry;
-
 typedef enum {
     no_change, set_0, set_1
 } Interrupt_Flag_Change;
@@ -203,7 +209,7 @@ typedef struct _interrupt_flags {
 typedef struct _exception_vector {
     ARM_U_WORD address;
     ARM_U_WORD priority;
-    Mode_on_Entry mode_on_entry;
+    Current_Mode current_mode;
     Interrupt_Flags interrupt_flags;
 } Exception_Vector;
 /**
@@ -285,6 +291,7 @@ SPSR spsr;
 Stack_Pointer sp;
 Program_Counter pc;
 Link_Register lr;
+char *register_as_string(ARM_U_WORD reg);
 /***********************************************
  * Registers end
  *

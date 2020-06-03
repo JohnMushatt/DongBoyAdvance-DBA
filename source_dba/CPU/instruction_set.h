@@ -8,6 +8,8 @@
 #include "cpu.h"
 #include "logger.h"
 #include "assert.h"
+#include "string.h"
+
 #ifndef BIT_MACROS
 #define BIT_MACROS
 #define BIT0 1 << 0
@@ -86,38 +88,61 @@ Opcode Format
     7-0    nn - 2nd Operand Unsigned 8bit Immediate
    */
 typedef enum {
-    AND,XOR,SUB,RSB,ADD,ADC,SBC,RSC,TST,TEQ,CMP,CMN,ORR,MOV,BIC,MVN
+    AND, XOR, SUB, RSB, ADD, ADC, SBC, RSC, TST, TEQ, CMP, CMN, ORR, MOV, BIC, MVN
 } ALU_Opcode_Alias;
+
 ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode);
+
 typedef enum {
     EQ, NE, CS, CC, MI, PL, VS, VC, HI, LS, GE, LT, GT, LE, AL
 } Branch_Condition;
 typedef Branch_Condition Condition_Alias;
+
 Condition_Alias get_condition_alias(ARM_U_WORD opcode);
 
 void decode(ARM_U_WORD opcode);
+
 bool current_condition_flag;
+
 void update_condition_flag(bool condition_flag);
+
 /**
  * Arithmetic Instructions
  */
 ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount);
+
 ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate);
+
 void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_RSB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_ADC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_SBC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_RSC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_TST_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_TEQ_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_CMP_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_CMN_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
-void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d,ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
+void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_MOV_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2);
-void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d,ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
+void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+
 void Arithmetic_MVN_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2);
 
 /**
@@ -196,5 +221,11 @@ void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate);
  * Update the condition flags from the given ARM_U_WORD (uint32_t)
  */
 void update_condition_flags(ARM_U_WORD flags);
+
 void print_binary(ARM_U_WORD opcode);
+
+char *condition_as_string(Condition_Alias cond);
+
+char *ALU_as_astring(ALU_Opcode_Alias instr);
+
 #endif //DONGBOYADVANCE_INSTRUCTION_SET_H

@@ -19,6 +19,115 @@ void print_binary(ARM_U_WORD opcode) {
     printf("\n");
 }
 
+char *ALU_as_astring(ALU_Opcode_Alias instr) {
+    char *alu_string = (char *) malloc(sizeof(ARM_U_BYTE) * 4);
+    switch (instr) {
+
+        case AND:
+            strncpy(alu_string, "AND\0", 4);
+            break;
+        case XOR:
+            strncpy(alu_string, "XOR\0", 4);
+            break;
+        case SUB:
+            strncpy(alu_string, "SUB\0", 4);
+            break;
+        case RSB:
+            strncpy(alu_string, "RSB\0", 4);
+            break;
+        case ADD:
+            strncpy(alu_string, "ADD\0", 4);
+            break;
+        case ADC:
+            strncpy(alu_string, "ADC\0", 4);
+            break;
+        case SBC:
+            strncpy(alu_string, "SBC\0", 4);
+            break;
+        case RSC:
+            strncpy(alu_string, "RSC\0", 4);
+            break;
+        case TST:
+            strncpy(alu_string, "TST\0", 4);
+            break;
+        case TEQ:
+            strncpy(alu_string, "TEQ\0", 4);
+            break;
+        case CMP:
+            strncpy(alu_string, "CMP\0", 4);
+            break;
+        case CMN:
+            strncpy(alu_string, "CMN\0", 4);
+            break;
+        case ORR:
+            strncpy(alu_string, "ORR\0", 4);
+            break;
+        case MOV:
+            strncpy(alu_string, "MOV\0", 4);
+            break;
+        case BIC:
+            strncpy(alu_string, "BIC\0", 4);
+            break;
+        case MVN:
+            strncpy(alu_string, "MVN\0", 4);
+            break;
+    }
+    return alu_string;
+}
+
+char *condition_as_string(Condition_Alias cond) {
+    char *cond_string = (char *) malloc((sizeof(ARM_U_BYTE) * 3));
+    switch (cond) {
+
+        case EQ:
+            strncpy(cond_string, "EQ\0", 3);
+            break;
+        case NE:
+            strncpy(cond_string, "NE\0", 3);
+            break;
+        case CS:
+            strncpy(cond_string, "CS\0", 3);
+            break;
+        case CC:
+            strncpy(cond_string, "CC\0", 3);
+            break;
+        case MI:
+            strncpy(cond_string, "MI\0", 3);
+            break;
+        case PL:
+            strncpy(cond_string, "PL\0", 3);
+            break;
+        case VS:
+            strncpy(cond_string, "VS\0", 3);
+            break;
+        case VC:
+            strncpy(cond_string, "VC\0", 3);
+            break;
+        case HI:
+            strncpy(cond_string, "HI\0", 3);
+            break;
+        case LS:
+            strncpy(cond_string, "LS\0", 3);
+            break;
+        case GE:
+            strncpy(cond_string, "GE\0", 3);
+            break;
+        case LT:
+            strncpy(cond_string, "LT\0", 3);
+            break;
+        case GT:
+            strncpy(cond_string, "GT\0", 3);
+            break;
+        case LE:
+            strncpy(cond_string, "LE\0", 3);
+            break;
+        case AL:
+            strncpy(cond_string, "AL\0", 3);
+            break;
+    }
+    return cond_string;
+}
+
 /**
  * Currently should work with ADD, SUB
  */
@@ -359,20 +468,29 @@ void Branch(ARM_U_WORD opcode) {
     ARM_U_WORD address = pc.r15.data + 8 + (nn * 4);
     char branch_string[128];
 
-    if (branch_type) {
-        sprintf(branch_string, "Branch with Link; PC: 0x%08x -> 0x%08x, LR: 0x%08x", pc.r15.data, address,
-                pc.r15.data + 4);
-    } else {
-        sprintf(branch_string, "Branch; PC: 0x%08x -> 0x%08x", pc.r15.data, address);
+#ifdef _BUILD_WITH_LOGGING
+    if (log_level & LOG_INSTRUCTION) {
+
+        printf("0x%08x: 0x%08x\t%s %s 0x%08x\n", pc.r15.data, opcode, branch_type ? "B" : "BL",
+               condition_as_string(condition_alias), address);
     }
-    printf("Opcode: [Branch|0x%08x\nBinary format:\n", opcode);
-    print_binary(opcode);
-    printf("Condition: 0x%x\n"
-           "Check: 0x%x\n"
-           "%s\n",
-           condition,
-           check,
-           branch_string);
+    if (log_level & LOG_OPCODE) {
+        if (branch_type) {
+            sprintf(branch_string, "Branch with Link; PC: 0x%08x -> 0x%08x, LR: 0x%08x", pc.r15.data, address,
+                    pc.r15.data + 4);
+        } else {
+            sprintf(branch_string, "Branch; PC: 0x%08x -> 0x%08x", pc.r15.data, address);
+        }
+        printf("Opcode: [Branch|0x%08x\nBinary format:\n", opcode);
+        print_binary(opcode);
+        printf("Condition: 0x%x\n"
+               "Check: 0x%x\n"
+               "%s\n",
+               condition,
+               check,
+               branch_string);
+    }
+#endif
     bool pass_condition = check_condition(condition_alias);
     if (pass_condition) {
         switch (branch_type) {
@@ -591,9 +709,9 @@ void PSR_Reg(ARM_U_WORD opcode) {
            0: MRS{cond} Rd,Psr          ;Rd = Psr
            1: MSR{cond} Psr{_field},Op  ;Psr[field] = Op
      */
-     /**
-      * @todo Add saved(banked) registers so that MSR/MRS instructions can function properly. @Critical, @Opcode
-      */
+    /**
+     * @todo Add saved(banked) registers so that MSR/MRS instructions can function properly. @Critical, @Opcode
+     */
     if (OP) {
         f = (opcode & (BIT19)) >> 19;
         s = (opcode & (BIT18)) >> 18;
@@ -607,9 +725,8 @@ void PSR_Reg(ARM_U_WORD opcode) {
         if (I) {
             ARM_U_WORD shift = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
             ARM_U_WORD imm = (opcode & (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
-            ARM_U_WORD nn = ROR_Imm(imm,shift);
-        }
-        else {
+            ARM_U_WORD nn = ROR_Imm(imm, shift);
+        } else {
 
         }
     } else {
@@ -757,16 +874,39 @@ void DataProc_Imm(ARM_U_WORD opcode) {
     ARM_U_WORD Is = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
     ARM_U_WORD nn = (opcode & (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
     ARM_U_WORD nn_shifted = ROR_Imm(nn, Is);
-    printf("Opcode: [DataProc_Imm|0x%08x]\nBinary format:\n", opcode);
-    print_binary(opcode);
-    printf("Condition: 0x%x\n"
-           "Check: 0x%x\n"
-           "reg_n: %d reg_n.data=[0x%08x]\n"
-           "reg_d: %d reg_d.data=[0x%08x]\n"
-           "Is: 0x%x\n"
-           "nn: 0x%01x\n"
-           "nn_shifted: 0x%08x\n", condition, check, reg_n, gpr.registers[reg_n].data, reg_d,
-           gpr.registers[reg_n].data, Is, nn, nn_shifted);
+#ifdef _BUILD_WITH_LOGGING
+    if (log_level & LOG_INSTRUCTION) {
+        if ((instruction >= 0x0 && instruction <= 0x7) || instruction == 0xc || instruction == 0xe) {
+            printf("0x%08x: 0x%08x\t%s %s %s,%s, #%d\n",
+                    pc.r15.data,
+                    opcode,
+                    ALU_as_astring(instruction),
+                    condition_as_string(condition_alias),
+                    register_as_string(reg_d),
+                   register_as_string(reg_n),
+                   nn_shifted);
+        } else if (instruction == 0xd || instruction == 0xf) {
+            printf("0x%08x: 0x%08x\t%s %s %s, #%d\n",
+                   pc.r15.data,
+                   opcode,
+                   ALU_as_astring(instruction),
+                   condition_as_string(condition_alias),
+                   register_as_string(reg_d),nn_shifted);
+        }
+    }
+    if (log_level & LOG_OPCODE) {
+        printf("Opcode: [DataProc_Imm|0x%08x]\nBinary format:\n", opcode);
+        print_binary(opcode);
+        printf("Condition: 0x%x\n"
+               "Check: 0x%x\n"
+               "reg_n: %d reg_n.data=[0x%08x]\n"
+               "reg_d: %d reg_d.data=[0x%08x]\n"
+               "Is: 0x%x\n"
+               "nn: 0x%01x\n"
+               "nn_shifted: 0x%08x\n", condition, check, reg_n, gpr.registers[reg_n].data, reg_d,
+               gpr.registers[reg_n].data, Is, nn, nn_shifted);
+    }
+#endif
     bool pass_condition = check_condition(condition_alias);
     if (pass_condition) {
         switch (instruction) {
@@ -853,7 +993,9 @@ void unknown_opcode(ARM_U_WORD opcode) {
 
 void decode(ARM_U_WORD opcode) {
 
-
+    if (log_level & LOG_REGISTER) {
+        print_all_registers();
+    }
     ARM_U_WORD o_type = (opcode & (BIT27 | BIT26 | BIT25 | BIT24)) >> 24;
     /**
      * @todo Rework this jump table to be cleaner/concise
@@ -986,7 +1128,9 @@ void decode(ARM_U_WORD opcode) {
                     unknown_opcode(opcode);
             }
     }
+    /*
     if (log_level & LOG_REGISTER) {
         print_all_registers();
     }
+     */
 }

@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     pthread_create(&pid, NULL, &begin_debug, (void *) process_info);
 
 #endif
-    log_level|=LOG_NORMAL |  LOG_REGISTER;
+    log_level|=LOG_NORMAL |  LOG_REGISTER | LOG_INSTRUCTION;
     init_cpu();
 
     load_bios();

@@ -20,6 +20,7 @@
 #define LOG_REGISTER 1 << 4
 #define LOG_FUNCTION 1 << 5
 
+
 typedef uint64_t Log_Level;
 
 

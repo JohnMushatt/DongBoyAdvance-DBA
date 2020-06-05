@@ -113,21 +113,21 @@ ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount);
 
 ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate);
 
-void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
-void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
-void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
-void Arithmetic_RSB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_RSB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
-void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
-void Arithmetic_ADC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_ADC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
-void Arithmetic_SBC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_SBC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
-void Arithmetic_RSC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_RSC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
 void Arithmetic_TST_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
 
@@ -137,11 +137,11 @@ void Arithmetic_CMP_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
 
 void Arithmetic_CMN_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2);
 
-void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
 void Arithmetic_MOV_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2);
 
-void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2);
+void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
 void Arithmetic_MVN_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2);
 

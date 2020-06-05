@@ -94,7 +94,8 @@ void print_cond_flag() {
 //TODO Update to use format specifiers
 
 void print_cpsr() {
-    printf("cpsr: [%s%s%s%s%s%s%s]\n",
+    printf("cpsr: [0x%08x] [%s%s%s%s%s%s%s]\n",
+            cpsr.status,
             cpsr.N_Sign_flag ? "N":"-",
             cpsr.Z_Zero_flag ? "Z":"-",
             cpsr.C_Carry_flag ? "C":"-",

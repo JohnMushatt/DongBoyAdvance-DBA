@@ -64,7 +64,7 @@ void zero_reg(int reg, ...) {
 }
 
 void set_reg(ARM_U_WORD reg, ARM_U_WORD val) {
-    if (reg >= 0 || reg <= 13) {
+    if (reg >= 0 && reg <= 12) {
         gpr.registers[reg].data = val;
     } else if (reg == 13) {
         sp.r13.data = val;
@@ -76,7 +76,7 @@ void set_reg(ARM_U_WORD reg, ARM_U_WORD val) {
 }
 
 ARM_U_WORD get_reg_data(ARM_U_WORD reg) {
-    if (reg >= 0 || reg <= 12) {
+    if (reg >= 0 && reg <= 12) {
         return gpr.registers[reg].data;
     } else if (reg == 13) {
         return sp.r13.data;

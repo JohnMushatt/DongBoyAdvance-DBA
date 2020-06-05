@@ -139,39 +139,41 @@ void update_condition_flags(ARM_U_WORD flags) {
  * ALU IMMEDIATE INSTRUCTIONS
  */
 
-void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD immediate) {
-    gpr.registers[reg_d].data = gpr.registers[reg_n].data & immediate;
+void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD immediate) {
+    gpr.registers[reg_d].data = reg_n_data & immediate;
     if (current_condition_flag) {
 
     }
 }
 
-void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD immediate) {
-    gpr.registers[reg_d].data = gpr.registers[reg_n].data ^ immediate;
+void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD immediate) {
+    gpr.registers[reg_d].data = reg_n_data^ immediate;
 }
 
-void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = gpr.registers[reg_n].data - Op2;
+void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = reg_n_data - Op2;
 }
 
-void Arithmetic_RSB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = Op2 - gpr.registers[reg_n].data;
+void Arithmetic_RSB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = Op2 - reg_n_data;
 }
 
-void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = gpr.registers[reg_n].data + Op2;
+void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
+    ARM_U_WORD result = reg_n_data + Op2;
+    set_reg(reg_d,result);
+    //gpr.registers[reg_d].data = gpr.registers[reg_n].data + Op2;
 }
 
-void Arithmetic_ADC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = gpr.registers[reg_n].data + Op2 + cpsr.C_Carry_flag;
+void Arithmetic_ADC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = reg_n_data + Op2 + cpsr.C_Carry_flag;
 }
 
-void Arithmetic_SBC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = gpr.registers[reg_n].data - Op2 + cpsr.C_Carry_flag - 1;
+void Arithmetic_SBC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = reg_n_data - Op2 + cpsr.C_Carry_flag - 1;
 }
 
-void Arithmetic_RSC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = Op2 - gpr.registers[reg_n].data + cpsr.C_Carry_flag - 1;
+void Arithmetic_RSC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = Op2 - reg_n_data + cpsr.C_Carry_flag - 1;
 }
 
 void Arithmetic_TST_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2) {
@@ -190,16 +192,16 @@ void Arithmetic_CMN_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2) {
     ARM_U_WORD result = gpr.registers[reg_n].data + Op2;
 }
 
-void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = gpr.registers[reg_n].data | Op2;
+void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = reg_n_data | Op2;
 }
 
 void Arithmetic_MOV_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2) {
     gpr.registers[reg_d].data = Op2;
 }
 
-void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = gpr.registers[reg_n].data & ~(Op2);
+void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
+    gpr.registers[reg_d].data = reg_n_data & ~(Op2);
 }
 
 void Arithmetic_MVN_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2) {
@@ -575,9 +577,15 @@ void TransImm9(ARM_U_WORD opcode) {
     ARM_U_WORD reg_n = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16; //Base register
     ARM_U_WORD reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12; //Source/Destination Register
     ARM_U_WORD reg_n_data = get_reg_data(reg_n);
+    if (reg_n == 15) {
+        reg_n_data += 8;
+    }
     ARM_U_WORD reg_d_data = get_reg_data(reg_d);
+    if (reg_d == 15) {
+        reg_d_data += 12;
+    }
     ARM_U_WORD Offset = (opcode &
-                         (BIT12 | BIT11 | BIT10 | BIT9 | BIT8 | BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
+                         (BIT11 | BIT10 | BIT9 | BIT8 | BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
     if (log_level & LOG_OPCODE) {
         char Bit_21_String[128];
         if (P) {
@@ -616,7 +624,7 @@ void TransImm9(ARM_U_WORD opcode) {
     ARM_U_WORD offset_addr;
     ARM_U_WORD address;
     ARM_U_WORD data;
-    if (true) {
+    if (pass_condition) {
         /**
          * Up/Down check
          */
@@ -632,6 +640,10 @@ void TransImm9(ARM_U_WORD opcode) {
             address = offset_addr;
         } else {
             address = reg_n_data;
+        }
+        if (log_level & LOG_INSTRUCTION) {
+            printf("0x%08x: 0x%08x %s %s %s,[0x%08x]\n", get_reg_data(reg_n), opcode, L ? "LDR" : "STR",
+                   condition_as_string(condition_alias), register_as_string(reg_d), address);
         }
         switch ((ARM_U_BYTE) L) {
             case 0x0:
@@ -651,6 +663,7 @@ void TransImm9(ARM_U_WORD opcode) {
             set_reg(reg_n, data);
         }
     }
+    set_pc(get_reg_data(15) + 4);
 }
 
 /**
@@ -735,6 +748,11 @@ void PSR_Reg(ARM_U_WORD opcode) {
 
             } else {
                 ARM_U_WORD reg_m = (opcode & (0xf)) >> 4;
+                ARM_U_WORD reg_m_data = get_reg_data(reg_m);
+
+
+                ARM_U_WORD check_5 = (opcode & (BIT11 | BIT10 | BIT9 | BIT8 | BIT7 | BIT6 | BIT5 | BIT4)) >> 4;
+                debug_assert(check_5 == false, "Check_5 must be 0x0 for this instruction, else it is a BX instruction");
                 if (log_level & LOG_INSTRUCTION) {
 
                     printf("0x%08x: 0x%08x\tMSR %s _%s%s, %s\n",
@@ -744,6 +762,17 @@ void PSR_Reg(ARM_U_WORD opcode) {
                            f ? "f" : "_",
                            c ? "c" : "_",
                            register_as_string(reg_m));
+                }
+                ARM_U_WORD retval = get_current_SPSR(&cpsr);
+                if (retval == 0) {
+                    ARM_U_WORD mask = 0;
+                    if (f) {
+                        mask |= (BIT31 | BIT30 | BIT29 | BIT28 | BIT27 | BIT26 | BIT25 | BIT24);
+                    }
+                    if (c) {
+                        mask |= (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0);
+                    }
+                    cpsr.status = mask & reg_m_data;
                 }
             }
         } else {
@@ -772,35 +801,35 @@ ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode) {
         case AND:
             return AND;
         case XOR:
-            break;
+            return XOR;
         case SUB:
-            break;
+            return SUB;
         case RSB:
-            break;
+            return RSB;
         case ADD:
-            break;
+            return ADD;
         case ADC:
-            break;
+            return ADC;
         case SBC:
-            break;
+            return SBC;
         case RSC:
-            break;
+            return RSC;
         case TST:
-            break;
+            return TST;
         case TEQ:
-            break;
+            return TEQ;
         case CMP:
             return CMP;
         case CMN:
-            break;
+            return CMN;
         case ORR:
-            break;
+            return ORR;
         case MOV:
-            break;
+            return MOV;
         case BIC:
-            break;
+            return BIC;
         case MVN:
-            break;
+            return MVN;
     }
 }
 
@@ -809,49 +838,34 @@ Condition_Alias get_condition_alias(ARM_U_WORD opcode) {
 
         case EQ:
             return EQ;
-            break;
         case NE:
             return NE;
-            break;
         case CS:
             return CS;
-            break;
         case CC:
             return CC;
-            break;
         case MI:
             return MI;
-            break;
         case PL:
             return PL;
-            break;
         case VS:
             return VS;
-            break;
         case VC:
             return VC;
-            break;
         case HI:
             return HI;
-            break;
         case LS:
             return LS;
-            break;
         case GE:
             return GE;
-            break;
         case LT:
             return LT;
-            break;
         case GT:
             return GT;
-            break;
         case LE:
             return LE;
-            break;
         case AL:
             return AL;
-            break;
     }
 }
 
@@ -886,6 +900,10 @@ void DataProc_Imm(ARM_U_WORD opcode) {
 
     ARM_U_WORD reg_n = (opcode & (BIT19 | BIT18 | BIT17 | BIT16)) >> 16; //1st Operand Register - Includes PC=15
     ARM_U_WORD reg_d = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12; //Destination Register - Includes PC=15
+    ARM_U_WORD reg_n_data = get_reg_data(reg_n);
+    if(reg_n==15) {
+        reg_n_data+=8;
+    }
     if (instr_alias >= TST && instr_alias <= CMN) {
         debug_assert((reg_d == 0x0 || reg_d == 0xf),
                      "Bad destination register, needs to be either reg[0] or reg[15]");
@@ -930,28 +948,28 @@ void DataProc_Imm(ARM_U_WORD opcode) {
     if (pass_condition) {
         switch (instruction) {
             case 0x0:
-                Arithmetic_AND_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_AND_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0x1:
-                Arithmetic_EOR_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_EOR_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0x2:
-                Arithmetic_SUB_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_SUB_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0x3:
-                Arithmetic_RSB_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_RSB_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0x4:
-                Arithmetic_ADD_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_ADD_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0x5:
-                Arithmetic_ADC_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_ADC_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0x6:
-                Arithmetic_SBC_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_SBC_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0x7:
-                Arithmetic_RSC_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_RSC_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0x8:
                 Arithmetic_TST_Immediate(reg_n, nn_shifted);
@@ -966,20 +984,20 @@ void DataProc_Imm(ARM_U_WORD opcode) {
                 Arithmetic_CMN_Immediate(reg_n, nn_shifted);
                 break;
             case 0xc:
-                Arithmetic_ORR_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_ORR_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0xd:
                 Arithmetic_MOV_Immediate(reg_d, nn_shifted);
                 break;
             case 0xe:
-                Arithmetic_BIC_Immediate(reg_d, reg_n, nn_shifted);
+                Arithmetic_BIC_Immediate(reg_d, reg_n_data, nn_shifted);
                 break;
             case 0xf:
                 Arithmetic_MVN_Immediate(reg_n, nn_shifted);
                 break;
         }
     }
-    set_pc(pc.r15.data + 4);
+    set_pc(get_reg_data(0xf) + 4);
 }
 
 /**

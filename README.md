@@ -5,14 +5,18 @@
 ## __Release v1.0.2__
 ##### Current goal for v1.0.2 release is proper recognition and parsing of opcodes which should set me up for handling the implementation of the opcodes themselves.
 ### Tasks:
-- [20%] Finish implementing ARM 32-bit instruction set
 
+- [40%] Finish implementing ARM 32-bit instruction set
 - [40%] Implement IPC between DBA and DBA_Debugger (Probably shared memory model)
-- [40%] Decode .gba opcodes for translation phase
+- [60%] Decode .gba opcodes for translation phase
     - [21/21] Recognize specific ARM7TDMI opcodes
     
-    - [1/21] Properly parse each opcode for arguments and flags
+    - [4/21] Properly parse each opcode for arguments and flags
 - [10%] Cleanup and improve CMake process to use Conan (potentially not necessary given that the project doesn't have many 3rd party libraries)
+### Changelog v1.0.2
+
+- Changed how ALU functions work, no longer pass register and immediate flag, now just pass the data in and have the callee function properly pass in data.
+-
 
 ### Table of tasks, intended release version of task, and progress
 

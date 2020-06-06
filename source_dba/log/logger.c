@@ -42,17 +42,18 @@ void log_err(Error_Message err) {
 void print_gen_reg() {
     printf("%5s[0x%08x]", "r0: ", gpr.registers[0].data);
     printf("%8s[0x%08x]", "r1: ", gpr.registers[1].data);
-    printf("%8s[0x%08x]\n", "r2: ", gpr.registers[2].data);
-    printf("%5s[0x%08x]", "r3: ", gpr.registers[3].data);
-    printf("%8s[0x%08x]", "r4: ", gpr.registers[4].data);
-    printf("%8s[0x%08x]\n", "r5: ", gpr.registers[5].data);
-    printf("%5s[0x%08x]", "r6: ", gpr.registers[6].data);
-    printf("%8s[0x%08x]", "r7: ", gpr.registers[7].data);
-    printf("%8s[0x%08x]\n", "r8: ", gpr.registers[8].data);
-    printf("%5s[0x%08x]", "r9: ", gpr.registers[9].data);
+    printf("%8s[0x%08x]", "r2: ", gpr.registers[2].data);
+    printf("%8s[0x%08x]\n", "r3: ", gpr.registers[3].data);
+    printf("%5s[0x%08x]", "r4: ", gpr.registers[4].data);
+    printf("%8s[0x%08x]", "r5: ", gpr.registers[5].data);
+    printf("%8s[0x%08x]", "r6: ", gpr.registers[6].data);
+    printf("%8s[0x%08x]\n", "r7: ", gpr.registers[7].data);
+    printf("%5s[0x%08x]", "r8: ", gpr.registers[8].data);
+    printf("%8s[0x%08x]", "r9: ", gpr.registers[9].data);
     printf("%8s[0x%08x]", "r10: ", gpr.registers[10].data);
     printf("%8s[0x%08x]\n", "r11: ", gpr.registers[11].data);
-    printf("%5s[0x%08x]", "r13: ", sp.r13.data);
+    printf("%5s[0x%08x]","r12: ",gpr.registers[12].data);
+    printf("%8s[0x%08x]", "r13: ", sp.r13.data);
     printf("%8s[0x%08x]", "r14: ", lr.r14.data);
     printf("%8s[0x%08x]\n", "r15: ",pc.r15.data+4);
 

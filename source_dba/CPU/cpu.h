@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include "logger.h"
 #include <stdarg.h>
+#include <string.h>
 
 bool debug;
 typedef uint64_t ARM_U_DWORD;
@@ -137,7 +138,7 @@ typedef union _cpsr {
     ARM_U_WORD status;
 
     struct {
-        ARM_U_WORD Mode_bits: 4;
+        ARM_U_WORD Mode_bits: 5;
         ARM_U_WORD T_state_bit: 1;
         ARM_U_WORD F_FIQ_disable: 1;
         ARM_U_WORD I_IQR_disable: 1;
@@ -165,6 +166,16 @@ typedef union _cpsr {
 
 } CPSR;
 
+
+ARM_S_WORD get_current_SPSR(CPSR *cpsr);
+
+/**
+ * Mode or entry of the exception
+ */
+typedef enum {
+    _svc, _und, _abt, _iqr, _fiq
+} Current_Mode;
+
 /**
  * Saved Program Status Registers (SPSR_<mode>)
    Additionally to above CPSR, five Saved Program Status Registers exist:
@@ -177,16 +188,13 @@ typedef union _cpsr {
  */
 //TODO Figure out what to put in the struct
 typedef struct _spsr {
-    General_Purpose_Register spsr;
+    CPSR SPSR_fiq;
+    CPSR SPSR_svc;
+    CPSR SPSR_abt;
+    CPSR SPSR_irq;
+    CPSR SPSR_und;
+    Current_Mode current_mode;
 } SPSR;
-
-/**
- * Mode or entry of the exception
- */
-typedef enum {
-    _svc, _und, _abt, _iqr, _fiq
-} Mode_on_Entry;
-
 typedef enum {
     no_change, set_0, set_1
 } Interrupt_Flag_Change;
@@ -203,7 +211,7 @@ typedef struct _interrupt_flags {
 typedef struct _exception_vector {
     ARM_U_WORD address;
     ARM_U_WORD priority;
-    Mode_on_Entry mode_on_entry;
+    Current_Mode current_mode;
     Interrupt_Flags interrupt_flags;
 } Exception_Vector;
 /**
@@ -258,7 +266,9 @@ typedef enum {
 } Alignment;
 typedef Alignment Write_Mode;
 typedef Alignment Read_Mode;
+
 ARM_U_WORD fetch_opcode_memory();
+
 void set_memory_range_random(ARM_U_WORD starting_address, ARM_U_WORD size, Write_Mode mode);
 
 void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode);
@@ -268,6 +278,8 @@ void view_address(ARM_U_WORD address, Read_Mode mode);
 ARM_U_WORD read_memory(ARM_U_WORD, Read_Mode mode);
 
 ARM_U_WORD get_word(ARM_U_WORD address);
+
+ARM_U_WORD get_hword(ARM_U_WORD address);
 
 ARM_U_WORD get_byte(ARM_U_WORD address);
 
@@ -285,6 +297,10 @@ SPSR spsr;
 Stack_Pointer sp;
 Program_Counter pc;
 Link_Register lr;
+
+char *register_as_string(ARM_U_WORD reg);
+
+char *spsr_as_string();
 /***********************************************
  * Registers end
  *
@@ -299,7 +315,9 @@ void init_cpu();
 void init_general_registers();
 
 void init_conditional_flags();
+
 void init_pc();
+
 void init_current_program_status_register();
 /***********************************************
  * Init routine section end
@@ -314,8 +332,11 @@ void zero_reg(int reg, ...);
 void set_reg(ARM_U_WORD reg, ARM_U_WORD value);
 
 void set_pc(ARM_U_WORD address);
+
 void set_lr(ARM_U_WORD address);
+
 ARM_U_WORD get_reg_data(ARM_U_WORD reg);
+
 /**
  * CPSR Functions
  */

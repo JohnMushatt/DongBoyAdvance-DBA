@@ -12,11 +12,14 @@
 #include <cpu.h>
 #include <unistd.h>
 #include <assert.h>
+
 #define LOG_NORMAL 1 << 0
 #define LOG_MEM 1 << 1
 #define LOG_OPCODE 1 << 2
 #define LOG_INSTRUCTION 1 << 3
 #define LOG_REGISTER 1 << 4
+#define LOG_FUNCTION 1 << 5
+
 
 typedef uint64_t Log_Level;
 
@@ -67,6 +70,6 @@ void print_link_register();
 
 void print_all_registers();
 
-void debug_assert(bool expr, const char* msg);
+void debug_assert(bool expr, const char *msg);
 
 #endif //DONGBOYADVANCE_LOGGER_H

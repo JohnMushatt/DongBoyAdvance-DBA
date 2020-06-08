@@ -64,7 +64,7 @@ void zero_reg(int reg, ...) {
 }
 
 void set_reg(ARM_U_WORD reg, ARM_U_WORD val) {
-    if (reg >= 0 || reg <= 13) {
+    if (reg >= 0 && reg <= 12) {
         gpr.registers[reg].data = val;
     } else if (reg == 13) {
         sp.r13.data = val;
@@ -74,9 +74,10 @@ void set_reg(ARM_U_WORD reg, ARM_U_WORD val) {
         pc.r15.data = val;
     }
 }
+
 ARM_U_WORD get_reg_data(ARM_U_WORD reg) {
-    if (reg >= 0 || reg <= 12) {
-       return gpr.registers[reg].data;
+    if (reg >= 0 && reg <= 12) {
+        return gpr.registers[reg].data;
     } else if (reg == 13) {
         return sp.r13.data;
     } else if (reg == 14) {
@@ -85,14 +86,43 @@ ARM_U_WORD get_reg_data(ARM_U_WORD reg) {
         return pc.r15.data;
     }
 }
+
 void set_pc(ARM_U_WORD address) {
-    printf("Program counter updated: 0x%08x -> 0x%08x\n", pc.r15.data, address);
+    if (log_level & LOG_FUNCTION) {
+        printf("Program counter updated: 0x%08x -> 0x%08x\n", pc.r15.data, address);
+    }
     pc.r15.data = address;
 }
 
 void set_lr(ARM_U_WORD address) {
-    printf("Link register updated: 0x%08x -> 0x%08x\n", lr.r14.data, address);
+    if (log_level & LOG_FUNCTION) {
+
+        printf("Link register updated: 0x%08x -> 0x%08x\n", lr.r14.data, address);
+    }
     lr.r14.data = address;
+}
+
+ARM_S_WORD get_current_SPSR(CPSR *user_cpsr) {
+    switch (spsr.current_mode) {
+
+        case _svc:
+            *user_cpsr = spsr.SPSR_svc;
+            return 0;
+        case _und:
+            *user_cpsr = spsr.SPSR_und;
+            return 0;
+        case _abt:
+            *user_cpsr = spsr.SPSR_abt;
+            return 0;
+        case _iqr:
+            *user_cpsr = spsr.SPSR_irq;
+            return 0;
+        case _fiq:
+            *user_cpsr = spsr.SPSR_fiq;
+            return 0;
+        default:
+            return -1;
+    }
 }
 
 void init_exception_vector_table() {
@@ -103,7 +133,7 @@ void init_exception_vector_table() {
     exception_vector_table.Reset.interrupt_flags.I = set_1;
     exception_vector_table.Reset.interrupt_flags.F = set_1;
     exception_vector_table.Reset.priority = 1;
-    exception_vector_table.Reset.mode_on_entry = _svc;
+    //exception_vector_table.Reset.mode_on_entry = _svc;
     /**
      * Undefined Instruction
      */
@@ -111,7 +141,7 @@ void init_exception_vector_table() {
     exception_vector_table.Undefined_Instruction.interrupt_flags.I = set_1;
     exception_vector_table.Undefined_Instruction.interrupt_flags.F = no_change;
     exception_vector_table.Undefined_Instruction.priority = 7;
-    exception_vector_table.Undefined_Instruction.mode_on_entry = _und;
+    //exception_vector_table.Undefined_Instruction.mode_on_entry = _und;
     /**
      * Software Interrupt (SWI)
      */
@@ -119,7 +149,7 @@ void init_exception_vector_table() {
     exception_vector_table.Software_Interrupt_SWI.interrupt_flags.I = set_1;
     exception_vector_table.Software_Interrupt_SWI.interrupt_flags.F = no_change;
     exception_vector_table.Software_Interrupt_SWI.priority = 6;
-    exception_vector_table.Software_Interrupt_SWI.mode_on_entry = _svc;
+    //exception_vector_table.Software_Interrupt_SWI.mode_on_entry = _svc;
     /**
      * Prefect Abort
      */
@@ -127,7 +157,7 @@ void init_exception_vector_table() {
     exception_vector_table.Prefect_Abort.interrupt_flags.I = set_1;
     exception_vector_table.Prefect_Abort.interrupt_flags.F = no_change;
     exception_vector_table.Prefect_Abort.priority = 5;
-    exception_vector_table.Prefect_Abort.mode_on_entry = _abt;
+    //exception_vector_table.Prefect_Abort.mode_on_entry = _abt;
     /**
      * Data Abort
      */
@@ -135,7 +165,7 @@ void init_exception_vector_table() {
     exception_vector_table.Data_Abort.interrupt_flags.I = set_1;
     exception_vector_table.Data_Abort.interrupt_flags.F = no_change;
     exception_vector_table.Data_Abort.priority = 2;
-    exception_vector_table.Data_Abort.mode_on_entry = _abt;
+    //exception_vector_table.Data_Abort.mode_on_entry = _abt;
     /**
      * Address Exceeds 26-bit (Most likely legacy support)
      */
@@ -143,7 +173,7 @@ void init_exception_vector_table() {
     exception_vector_table.Address_Exceeds_26bit.interrupt_flags.I = set_1;
     exception_vector_table.Address_Exceeds_26bit.interrupt_flags.F = no_change;
     exception_vector_table.Address_Exceeds_26bit.priority = 0;
-    exception_vector_table.Address_Exceeds_26bit.mode_on_entry = _svc;
+    //exception_vector_table.Address_Exceeds_26bit.mode_on_entry = _svc;
     /**
      * Normal Interrupt (IQR)
      */
@@ -151,7 +181,7 @@ void init_exception_vector_table() {
     exception_vector_table.Normal_Interrupt_IQR.interrupt_flags.I = set_1;
     exception_vector_table.Normal_Interrupt_IQR.interrupt_flags.F = no_change;
     exception_vector_table.Normal_Interrupt_IQR.priority = 4;
-    exception_vector_table.Normal_Interrupt_IQR.mode_on_entry = _iqr;
+    //exception_vector_table.Normal_Interrupt_IQR.mode_on_entry = _iqr;
     /**
      * Fast Interrupt (FIQ)
      */
@@ -159,14 +189,18 @@ void init_exception_vector_table() {
     exception_vector_table.Fast_Interrupt_FIQ.interrupt_flags.I = set_1;
     exception_vector_table.Fast_Interrupt_FIQ.interrupt_flags.F = set_1;
     exception_vector_table.Fast_Interrupt_FIQ.priority = 3;
-    exception_vector_table.Fast_Interrupt_FIQ.mode_on_entry = _fiq;
+    //exception_vector_table.Fast_Interrupt_FIQ.mode_on_entry = _fiq;
 }
 
 ARM_U_WORD fetch_opcode_memory() {
-    ARM_U_WORD address = pc.r15.data;
-    ARM_U_WORD opcode = read_memory(address, WORD);
-    //set_pc(pc.r15.data + 4);
-    return opcode;
+    ARM_U_WORD address = get_reg_data(15);
+    if (cpsr.T_state_bit) {
+        ARM_U_WORD opcode = read_memory(address, HALF_WORD);
+        return opcode;
+    } else {
+        ARM_U_WORD opcode = read_memory(address, WORD);
+        return opcode;
+    }
 }
 
 void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode) {
@@ -229,6 +263,7 @@ ARM_U_WORD read_memory(ARM_U_WORD address, Read_Mode mode) {
             data = get_byte(address);
             break;
         case HALF_WORD:
+            data = get_hword(address);
             break;
         case WORD:
             data = get_word(address);
@@ -246,7 +281,11 @@ ARM_U_WORD get_word(ARM_U_WORD address) {
     query |= MEMORY[address + 3] << 24;
     return query;
 }
-
+ARM_U_WORD get_hword(ARM_U_WORD address) {
+    ARM_U_WORD query = MEMORY[address];
+    query |= MEMORY[address + 1] << 8;
+    return query;
+}
 ARM_U_WORD get_byte(ARM_U_WORD address) {
     ARM_U_WORD query = MEMORY[address];
     return query;
@@ -295,4 +334,41 @@ void set_memory_range_random(ARM_U_WORD starting_address, ARM_U_WORD size, Write
         view_address(i, WORD);
     }
     printf("Wrote %u bytes into memory\n", size * offset);
+}
+
+char *register_as_string(ARM_U_WORD reg) {
+    char *reg_string = (char *) malloc(sizeof(ARM_U_BYTE) * 12);
+    if (reg >= 0 && reg <= 12) {
+        snprintf(reg_string, 12, "r%d", reg);
+    } else if (reg == 13) {
+        snprintf(reg_string, 12, "sp");
+    } else if (reg == 14) {
+        snprintf(reg_string, 12, "lr");
+    } else if (reg == 15) {
+        snprintf(reg_string, 12, "pc");
+    }
+    return reg_string;
+}
+
+char *spsr_as_string() {
+    char *spsr_string = (char *) malloc(sizeof(ARM_U_BYTE) * 12);
+    switch (spsr.current_mode) {
+
+        case _svc:
+            strncpy(spsr_string, "SPSR_svc", 12);
+            break;
+        case _und:
+            strncpy(spsr_string, "SPSR_und", 12);
+            break;
+        case _abt:
+            strncpy(spsr_string, "SPSR_abt", 12);
+            break;
+        case _iqr:
+            strncpy(spsr_string, "SPSR_iqr", 12);
+            break;
+        case _fiq:
+            strncpy(spsr_string, "SPSR_fiq", 12);
+            break;
+    }
+    return spsr_string;
 }

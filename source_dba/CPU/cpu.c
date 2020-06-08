@@ -193,10 +193,14 @@ void init_exception_vector_table() {
 }
 
 ARM_U_WORD fetch_opcode_memory() {
-    ARM_U_WORD address = pc.r15.data;
-    ARM_U_WORD opcode = read_memory(address, WORD);
-    //set_pc(pc.r15.data + 4);
-    return opcode;
+    ARM_U_WORD address = get_reg_data(15);
+    if (cpsr.T_state_bit) {
+        ARM_U_WORD opcode = read_memory(address, HALF_WORD);
+        return opcode;
+    } else {
+        ARM_U_WORD opcode = read_memory(address, WORD);
+        return opcode;
+    }
 }
 
 void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode) {
@@ -259,6 +263,7 @@ ARM_U_WORD read_memory(ARM_U_WORD address, Read_Mode mode) {
             data = get_byte(address);
             break;
         case HALF_WORD:
+            data = get_hword(address);
             break;
         case WORD:
             data = get_word(address);
@@ -276,7 +281,11 @@ ARM_U_WORD get_word(ARM_U_WORD address) {
     query |= MEMORY[address + 3] << 24;
     return query;
 }
-
+ARM_U_WORD get_hword(ARM_U_WORD address) {
+    ARM_U_WORD query = MEMORY[address];
+    query |= MEMORY[address + 1] << 8;
+    return query;
+}
 ARM_U_WORD get_byte(ARM_U_WORD address) {
     ARM_U_WORD query = MEMORY[address];
     return query;
@@ -346,19 +355,19 @@ char *spsr_as_string() {
     switch (spsr.current_mode) {
 
         case _svc:
-            strncpy(spsr_string,"SPSR_svc",12);
+            strncpy(spsr_string, "SPSR_svc", 12);
             break;
         case _und:
-            strncpy(spsr_string,"SPSR_und",12);
+            strncpy(spsr_string, "SPSR_und", 12);
             break;
         case _abt:
-            strncpy(spsr_string,"SPSR_abt",12);
+            strncpy(spsr_string, "SPSR_abt", 12);
             break;
         case _iqr:
-            strncpy(spsr_string,"SPSR_iqr",12);
+            strncpy(spsr_string, "SPSR_iqr", 12);
             break;
         case _fiq:
-            strncpy(spsr_string,"SPSR_fiq",12);
+            strncpy(spsr_string, "SPSR_fiq", 12);
             break;
     }
     return spsr_string;

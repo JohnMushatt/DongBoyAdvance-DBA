@@ -109,9 +109,23 @@ void update_condition_flag(bool condition_flag);
 /**
  * Arithmetic Instructions
  */
+typedef enum {
+    LSL, LSR, ASR, ROR
+} Shift_Type;
+
+ARM_U_WORD LSL_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount);
+
+ARM_U_WORD LSR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount);
+
+ARM_U_WORD ASR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount);
+
 ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount);
 
 ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate);
+
+Shift_Type get_shift_alias(ARM_U_WORD shift_type);
+
+ARM_U_WORD Shift(ARM_U_WORD immediate, ARM_U_WORD shift_amount, Shift_Type shift_type);
 
 void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2);
 
@@ -166,7 +180,9 @@ void Jump_Branch(Branch_Condition condition, ARM_U_WORD label);
 
 bool check_condition(Branch_Condition condition);
 
-
+/**
+ * A32 opcodes
+ */
 void software_interrupt(ARM_U_WORD opcode);
 
 void CoRegTrans(ARM_U_WORD opcode);
@@ -208,7 +224,16 @@ void DataProc_Shift(ARM_U_WORD opcode);
 void unknown_opcode(ARM_U_WORD opcode);
 
 void undefined_opcode(ARM_U_WORD opcode);
-
+/**
+ * THUMB opcodes
+ */
+void THUMB_move_shifted_register(ARM_U_WORD opcode);
+void THUMB_add(ARM_U_WORD opcode);
+void THUMB_subtract(ARM_U_WORD opcode);
+void THUMB_move(ARM_U_WORD opcode);
+void THUMB_cmp(ARM_U_WORD opcode);
+void THUMB_add_imm(ARM_U_WORD opcode);
+void THUMB_sub_imm(ARM_U_WORD opcode);
 /**
  * @todo Check to see if CMP correctly sets overflow and carry flags
  * @body Make sure CMP correctly sets the properly flags when there is
@@ -223,6 +248,7 @@ void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate);
 void update_condition_flags(ARM_U_WORD flags);
 
 void print_binary(ARM_U_WORD opcode);
+void print_binary_THUMB(ARM_U_WORD opcode);
 
 char *condition_as_string(Condition_Alias cond);
 

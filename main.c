@@ -46,6 +46,8 @@ int main(int argc, char **argv) {
     load_bios();
     read_rom();
     ARM_U_WORD opcode;
+
+
     while (rom_info->current_opcode < rom_info->rom_size) {
         opcode = fetch_opcode_memory();
         decode(opcode);

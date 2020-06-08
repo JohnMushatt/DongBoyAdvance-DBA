@@ -19,6 +19,21 @@ void print_binary(ARM_U_WORD opcode) {
     printf("\n");
 }
 
+void print_binary_THUMB(ARM_U_WORD opcode) {
+    for (ARM_U_WORD i = 1 << 15; i > 0; i = i / 2) {
+        (opcode & i) ? printf("1  ") : printf("0  ");
+    }
+    printf("\n");
+    for (ARM_S_WORD i = 15; i >= 0; i--) {
+        if (i < 10) {
+            printf("%d  ", i);
+        } else {
+            printf("%d ", i);
+        }
+    }
+    printf("\n");
+}
+
 char *ALU_as_astring(ALU_Opcode_Alias instr) {
     char *alu_string = (char *) malloc(sizeof(ARM_U_BYTE) * 4);
     switch (instr) {
@@ -140,22 +155,27 @@ void update_condition_flags(ARM_U_WORD flags) {
  */
 
 void Arithmetic_AND_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD immediate) {
-    gpr.registers[reg_d].data = reg_n_data & immediate;
-    if (current_condition_flag) {
+    ARM_U_WORD result = reg_n_data & immediate;
+    set_reg(reg_d, result);
 
-    }
 }
 
 void Arithmetic_EOR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD immediate) {
-    gpr.registers[reg_d].data = reg_n_data ^ immediate;
+    ARM_U_WORD result = reg_n_data ^immediate;
+    set_reg(reg_d, result);
+
 }
 
 void Arithmetic_SUB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = reg_n_data - Op2;
+    ARM_U_WORD result = reg_n_data - Op2;
+    set_reg(reg_d, result);
+
 }
 
 void Arithmetic_RSB_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = Op2 - reg_n_data;
+    ARM_U_WORD result = Op2 - reg_n_data;
+    set_reg(reg_d, result);
+
 }
 
 void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
@@ -165,15 +185,20 @@ void Arithmetic_ADD_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WOR
 }
 
 void Arithmetic_ADC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = reg_n_data + Op2 + cpsr.C_Carry_flag;
+    ARM_U_WORD result = reg_n_data + Op2 + cpsr.C_Carry_flag;
+    set_reg(reg_d, result);
+
 }
 
 void Arithmetic_SBC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = reg_n_data - Op2 + cpsr.C_Carry_flag - 1;
+    ARM_U_WORD result = reg_n_data - Op2 + cpsr.C_Carry_flag - 1;
+    set_reg(reg_d, result);
+
 }
 
 void Arithmetic_RSC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = Op2 - reg_n_data + cpsr.C_Carry_flag - 1;
+    ARM_U_WORD result = Op2 - reg_n_data + cpsr.C_Carry_flag - 1;
+    set_reg(reg_d, result);
 }
 
 void Arithmetic_TST_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2) {
@@ -193,24 +218,46 @@ void Arithmetic_CMN_Immediate(ARM_U_WORD reg_n, ARM_U_WORD Op2) {
 }
 
 void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = reg_n_data | Op2;
+    ARM_U_WORD result = reg_n_data | Op2;
+    set_reg(reg_d, result);
 }
 
 void Arithmetic_MOV_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = Op2;
+    set_reg(reg_d, Op2);
 }
 
 void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = reg_n_data & ~(Op2);
+    ARM_U_WORD result = reg_n_data & ~(Op2);
+    set_reg(reg_d, result);
 }
 
 void Arithmetic_MVN_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2) {
-    gpr.registers[reg_d].data = ~(Op2);
+    ARM_U_WORD result = ~(Op2);
+    set_reg(reg_d, result);
 }
 
 /**
  * ALU IMMEDIATE UTILITY INSTRUCTIONS
  */
+ARM_U_WORD LSL_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount) {
+    ARM_U_WORD result = immediate << shift_amount;
+    return result;
+}
+
+ARM_U_WORD LSR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount) {
+    ARM_U_WORD result = immediate >> shift_amount;
+    return result;
+}
+
+ARM_U_WORD ASR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount) {
+    ARM_U_WORD sign_bit = immediate & BIT31;
+    for (ARM_U_WORD i = shift_amount; i > 0; i--) {
+        immediate >>= 1;
+        immediate |= (sign_bit);
+    }
+    return immediate;
+}
+
 ARM_U_WORD ROR_RRX_Imm(ARM_U_WORD immediate) {
     return immediate;
 }
@@ -226,6 +273,33 @@ ARM_U_WORD ROR_Imm(ARM_U_WORD immediate, ARM_U_WORD shift_amount) {
     printf("Performed ROR shift on immediate: imm=[0x%08x] operand_mask=[0x%08x] leftover_mask=[0x%08x] result=[0x%08x]\n",
            immediate, operand_mask, leftover_mask, result);
     return result;
+}
+
+Shift_Type get_shift_alias(ARM_U_WORD shift_type) {
+    switch (shift_type) {
+        case 0x0:
+            return LSL;
+        case 0x1:
+            return LSR;
+        case 0x2:
+            return ASR;
+        case 0x3:
+            return ROR;
+    }
+}
+
+ARM_U_WORD Shift(ARM_U_WORD immediate, ARM_U_WORD shift_amount, Shift_Type shift_type) {
+    switch (shift_type) {
+
+        case LSL:
+            return LSL_Imm(immediate, shift_amount);
+        case LSR:
+            return LSR_Imm(immediate, shift_amount);
+        case ASR:
+            return ASR_Imm(immediate, shift_amount);
+        case ROR:
+            return ROR_Imm(immediate, shift_amount);
+    }
 }
 
 /**
@@ -284,6 +358,7 @@ void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate) {
     if ((signed_left > 0 && signed_right < 0 && SIGNED_WORD <= signed_right) ||
         (signed_left < 0 && signed_right > 0 && SIGNED_WORD >= signed_left)) {
         flags |= 1 << 28;
+
     }
     update_condition_flags(flags);
 }
@@ -513,7 +588,28 @@ void Branch(ARM_U_WORD opcode) {
  * @param opcode 32-bit instruction to decode
  */
 void BranchExchange(ARM_U_WORD opcode) {
-    printf("BranchExchange occurs here\n");
+    ARM_U_WORD condition = (opcode & (BIT31 | BIT30 | BIT29 | BIT28)) >> 28;
+    Condition_Alias condition_alias = get_condition_alias(condition);
+
+    ARM_U_WORD check_1 = (opcode & (0x12fff << 8)) >> 8;
+    debug_assert(check_1 == 0x12fff, "Bits [27,8] must be 0x12fff");
+    ARM_U_WORD operation = (opcode & (BIT7 | BIT6 | BIT5 | BIT4)) >> 4;
+
+    ARM_U_WORD reg_n = (opcode & (BIT3 | BIT2 | BIT1 | BIT0));
+    ARM_U_WORD reg_n_data = get_reg_data(reg_n);
+
+    bool switch_operating_mode = reg_n_data & BIT0;
+    cpsr.T_state_bit = switch_operating_mode;
+
+#ifdef  _BUILD_WITH_LOGGING
+    if (log_level & LOG_INSTRUCTION) {
+        printf("0x%08x: 0x%08x BX %s\n", get_reg_data(15), opcode, register_as_string(reg_n));
+        printf("operating mode set to %s\n", switch_operating_mode ? "T" : "A32");
+    }
+#endif
+    if (cpsr.T_state_bit) {
+        set_pc(reg_n_data & 0xFFFFFFFE);
+    }
 
 }
 
@@ -772,6 +868,7 @@ void PSR_Reg(ARM_U_WORD opcode) {
                     if (c) {
                         mask |= (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0);
                     }
+                    //reg_m_data
                     cpsr.status = mask & reg_m_data;
                 }
             }
@@ -910,7 +1007,7 @@ void DataProc_Imm(ARM_U_WORD opcode) {
     }
     ARM_U_WORD Is = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
     ARM_U_WORD nn = (opcode & (BIT7 | BIT6 | BIT5 | BIT4 | BIT3 | BIT2 | BIT1 | BIT0));
-    ARM_U_WORD nn_shifted = ROR_Imm(nn, Is);
+    ARM_U_WORD nn_shifted = Shift(nn, Is, ROR);
 #ifdef _BUILD_WITH_LOGGING
     if (log_level & LOG_INSTRUCTION) {
         if ((instruction >= 0x0 && instruction <= 0x7) || instruction == 0xc || instruction == 0xe) {
@@ -1033,16 +1130,49 @@ void DataProc_Reg(ARM_U_WORD opcode) {
     }
     bool R = (opcode & (BIT4)) >> 4;
     ARM_U_WORD shift_type = (opcode & (BIT6 | BIT5)) >> 5;
+    Shift_Type shift_alias = get_shift_alias(shift_type);
     ARM_U_WORD reg_m = (opcode & (BIT3 | BIT2 | BIT1 | BIT0));
-    if (R) {
-        ARM_U_WORD reg_s = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
-        ARM_U_WORD check_2 = (opcode & (BIT7)) >> 7;
-        debug_assert(check_2==0x0,"Reserved bit 7 must be 0 for this instruction");
+    ARM_U_WORD reg_m_data = get_reg_data(reg_m);
+    if (log_level & LOG_INSTRUCTION) {
+
+        if ((instruction >= 0x0 && instruction <= 0x7) || instruction == 0xc || instruction == 0xe) {
+            printf("0x%08x: 0x%08x\t%s %s %s,%s, #%d\n",
+                   pc.r15.data,
+                   opcode,
+                   ALU_as_astring(instruction),
+                   condition_as_string(condition_alias),
+                   register_as_string(reg_d),
+                   register_as_string(reg_n),
+                   reg_m_data);
+        } else if (instruction == 0xd || instruction == 0xf) {
+            printf("0x%08x: 0x%08x\t%s %s %s,%s\n",
+                   pc.r15.data,
+                   opcode,
+                   ALU_as_astring(instruction),
+                   condition_as_string(condition_alias),
+                   register_as_string(reg_d), register_as_string(reg_m));
+        }
+    }
+    if (log_level & LOG_INSTRUCTION) {
 
     }
-    else {
-        ARM_U_WORD shift_amount =(opcode & (BIT11 |BIT10|BIT9|BIT8|BIT7));
-        ARM_U_WORD data_with_offset = get_reg_data(reg_m)+8+shift_amount; //TODO Implement LSL/LSR/ASR/ROR shifting
+    if (R) {
+        if (reg_m == 15) {
+            if (!immediate) {
+                reg_m_data += 12;
+            }
+        }
+        ARM_U_WORD reg_s = (opcode & (BIT11 | BIT10 | BIT9 | BIT8)) >> 8;
+        ARM_U_WORD check_2 = (opcode & (BIT7)) >> 7;
+        debug_assert(check_2 == 0x0, "Reserved bit 7 must be 0 for this instruction");
+
+    } else {
+        if (reg_m == 15) {
+            reg_m_data += 8;
+        }
+        ARM_U_WORD shift_amount = (opcode & (BIT11 | BIT10 | BIT9 | BIT8 | BIT7));
+        ARM_U_WORD data_with_offset = Shift(reg_m_data, shift_amount,
+                                            shift_alias); //TODO Implement LSL/LSR/ASR/ROR shifting
         switch (instr_alias) {
 
             case AND:
@@ -1072,7 +1202,7 @@ void DataProc_Reg(ARM_U_WORD opcode) {
             case ORR:
                 break;
             case MOV:
-                set_reg(reg_d,data_with_offset);
+                set_reg(reg_d, data_with_offset);
                 break;
             case BIC:
                 break;
@@ -1080,30 +1210,8 @@ void DataProc_Reg(ARM_U_WORD opcode) {
                 break;
         }
     }
-    set_pc(get_reg_data(15)+4);
-#ifdef  _BUILD_WITH_LOGGING
-    if (log_level & LOG_INSTRUCTION) {
-        /*
-        if ((instruction >= 0x0 && instruction <= 0x7) || instruction == 0xc || instruction == 0xe) {
-            printf("0x%08x: 0x%08x\t%s %s %s,%s, #%d\n",
-                   pc.r15.data,
-                   opcode,
-                   ALU_as_astring(instruction),
-                   condition_as_string(condition_alias),
-                   register_as_string(reg_d),
-                   register_as_string(reg_n),
-                   nn_shifted);
-        } else if (instruction == 0xd || instruction == 0xf) {
-            printf("0x%08x: 0x%08x\t%s %s %s, #%d\n",
-                   pc.r15.data,
-                   opcode,
-                   ALU_as_astring(instruction),
-                   condition_as_string(condition_alias),
-                   register_as_string(reg_d), nn_shifted);
-        }
-         */
-    }
-#endif
+    set_pc(get_reg_data(15) + 4);
+
 }
 
 /**
@@ -1130,152 +1238,166 @@ void decode(ARM_U_WORD opcode) {
         print_gen_reg();
         print_cpsr();
     }
-    ARM_U_WORD o_type = (opcode & (BIT27 | BIT26 | BIT25 | BIT24)) >> 24;
-    /*
-    if (o_type == 0xf) {
-        software_interrupt(opcode);
-    } else if (o_type == 0xe) {
-        if (opcode & (BIT4)) {
-            CoRegTrans(opcode);
-        }
-        else {
-            CoDataOp(opcode);
-        }
-    }
-    else if((o_type & (BIT4 | BIT3))==0x3) {
-        CoDataTrans(opcode);
-    }
-     */
     /**
-     * @todo Rework this jump table to be cleaner/concise
-     * @body This section requires @Cleanup to make it more concise
+     * A32 instruction mode
      */
-    switch (o_type) {
-        //SWI if 1111
-        case 0xf:
-            software_interrupt(opcode);
-            break;
-            // CoRegTrans/CoDataOp if 1110
-        case 0xe:
-            if (opcode & (BIT4)) {
-                //Coprocessor register operation
-                CoRegTrans(opcode);
-            } else {
-                //Coprocessor data operation
-                CoDataOp(opcode);
-            }
-            break;
-        case 0x3:
-            if ((opcode & (BIT23 | BIT21 | BIT20)) >> 20 == 0x2) {
-                PSR_Imm(opcode);
+    if (cpsr.T_state_bit == false) {
+        ARM_U_WORD o_type = (opcode & (BIT27 | BIT26 | BIT25 | BIT24)) >> 24;
+
+        /**
+         * @todo Rework this jump table to be cleaner/concise
+         * @body This section requires @Cleanup to make it more concise
+         */
+        switch (o_type) {
+            //SWI if 1111
+            case 0xf:
+                software_interrupt(opcode);
                 break;
-            } else {
-                goto exit_switch;
-            }
-
-            // case 0x1:
-            //PSR_Reg(opcode);
-            //    break;
-            //The rest of the opcodes markers are only 3 bits wide for this section
-        exit_switch:
-
-        default:
-            o_type = o_type >> 1;
-            switch (o_type) {
-                //CoDataTrans if 110
-                case 0x6:
-                    //Coprocessor data transfer
-                    CoDataTrans(opcode);
+                // CoRegTrans/CoDataOp if 1110
+            case 0xe:
+                if (opcode & (BIT4)) {
+                    //Coprocessor register operation
+                    CoRegTrans(opcode);
+                } else {
+                    //Coprocessor data operation
+                    CoDataOp(opcode);
+                }
+                break;
+            case 0x3:
+                if ((opcode & (BIT23 | BIT21 | BIT20)) >> 20 == 0x2) {
+                    PSR_Imm(opcode);
                     break;
-                case 0x5:
-                    Branch(opcode);
-                    //Branch
-                    break;
-                case 0x4:
-                    BlockTrans(opcode);
-                    //Block data transfer
-                    break;
-                case 0x3:
-                    /**
-                     * @todo Test whether this check can actually distinguish undefined opcode vs single data transfer opcode
-                     * @body The @Opcode formats for undefined and single data transfer are very similar and I'm not exactly sure
-                     * how to distinguish either
-                     */
-                    if ((o_type & BIT4) >> 4) {
-                        undefined_opcode(opcode);
-                    } else {
-                        TransReg9(opcode);
-                    }
-                    break;
-                case 0x2:
-                    //Transfer immediate 9
-                    TransImm9(opcode);
-                    break;
-                case 0x1:
-                    //Data Processing Immediate
-                    DataProc_Imm(opcode);
-                    break;
-                case 0x0:
-                    //TransImm10
-                    if (((opcode & BIT22) >> 22) && ((opcode & BIT7) >> 7 && ((opcode & BIT4) >> 4))) {
-                        TransImm10(opcode);
-                    }
+                } else {
+                    goto exit_switch;
+                }
 
-                        //TransReg10
-                    else if (!((opcode & BIT22) >> 22) && ((opcode & (BIT8 | BIT9 | BIT10 | BIT11)) >> 8 == 0x0) &&
-                             ((opcode & BIT7) >> 7) && ((opcode & BIT4) >> 4)) {
-                        TransReg10(opcode);
-                    }
+                // case 0x1:
+                //PSR_Reg(opcode);
+                //    break;
+                //The rest of the opcodes markers are only 3 bits wide for this section
+            exit_switch:
 
-                        //TransSwp12
-                    else if (((opcode & (BIT24 | BIT25)) >> 24 == 0x2) &&
-                             ((opcode & (BIT21 | BIT22)) >> 21 == 0x0) &&
-                             ((opcode & (BIT4 | BIT5 | BIT6 | BIT7 | BIT8 | BIT9 | BIT10 | BIT11)) >> 4 == 0x9)) {
-                        TransSwp12(opcode);
-                    }
-                        //MulLong
-                    else if (((opcode & (BIT23 | BIT24)) >> 23 == 0x1) &&
-                             ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
-                        MulLong(opcode);
-                    }
-                        //Multiply
-                    else if (((opcode & (BIT22 | BIT23 | BIT24)) >> 22 == 0x0) &&
-                             ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
-                        Multiply(opcode);
-                    }
-                        //Branch Exchange
-                    else if ((opcode & (0x012FFF10)) == 0x012FFF10) {
-                        BranchExchange(opcode);
-                    }
-                        //PSR Register
-                    else if ((opcode & 0x0F900FF0) == BIT24) {
-                        PSR_Reg(opcode);
-                    }
-                        //PSR Immediate
-                    else if ((opcode & 0x03200000) == 0x03200000) {
-                        PSR_Imm(opcode);
-                    }
+            default:
+                o_type = o_type >> 1;
+                switch (o_type) {
+                    //CoDataTrans if 110
+                    case 0x6:
+                        //Coprocessor data transfer
+                        CoDataTrans(opcode);
+                        break;
+                    case 0x5:
+                        Branch(opcode);
+                        //Branch
+                        break;
+                    case 0x4:
+                        BlockTrans(opcode);
+                        //Block data transfer
+                        break;
+                    case 0x3:
+                        /**
+                         * @todo Test whether this check can actually distinguish undefined opcode vs single data transfer opcode
+                         * @body The @Opcode formats for undefined and single data transfer are very similar and I'm not exactly sure
+                         * how to distinguish either
+                         */
+                        if ((o_type & BIT4) >> 4) {
+                            undefined_opcode(opcode);
+                        } else {
+                            TransReg9(opcode);
+                        }
+                        break;
+                    case 0x2:
+                        //Transfer immediate 9
+                        TransImm9(opcode);
+                        break;
+                    case 0x1:
+                        //Data Processing Immediate
+                        DataProc_Imm(opcode);
+                        break;
+                    case 0x0:
+                        //TransImm10
+                        if (((opcode & BIT22) >> 22) && ((opcode & BIT7) >> 7 && ((opcode & BIT4) >> 4))) {
+                            TransImm10(opcode);
+                        }
 
-                        //Data Processing Register
-                    else if (((opcode & (BIT27 | BIT26 | BIT25 | BIT4))) == 0x0) {
-                        DataProc_Reg(opcode);
-                    }
-                        //Data Processing Shift
-                    else if (((opcode & (BIT27 | BIT26 | BIT25 | BIT7 | BIT4)) >> 4) == 0x1) {
-                        DataProc_Shift(opcode);
-                    } else {
+                            //TransReg10
+                        else if (!((opcode & BIT22) >> 22) && ((opcode & (BIT8 | BIT9 | BIT10 | BIT11)) >> 8 == 0x0) &&
+                                 ((opcode & BIT7) >> 7) && ((opcode & BIT4) >> 4)) {
+                            TransReg10(opcode);
+                        }
 
+                            //TransSwp12
+                        else if (((opcode & (BIT24 | BIT25)) >> 24 == 0x2) &&
+                                 ((opcode & (BIT21 | BIT22)) >> 21 == 0x0) &&
+                                 ((opcode & (BIT4 | BIT5 | BIT6 | BIT7 | BIT8 | BIT9 | BIT10 | BIT11)) >> 4 == 0x9)) {
+                            TransSwp12(opcode);
+                        }
+                            //MulLong
+                        else if (((opcode & (BIT23 | BIT24)) >> 23 == 0x1) &&
+                                 ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
+                            MulLong(opcode);
+                        }
+                            //Multiply
+                        else if (((opcode & (BIT22 | BIT23 | BIT24)) >> 22 == 0x0) &&
+                                 ((opcode & (BIT4 | BIT5 | BIT6 | BIT7)) >> 4 == 0x9)) {
+                            Multiply(opcode);
+                        }
+                            //Branch Exchange
+                        else if ((opcode & (0x012FFF10)) == 0x012FFF10) {
+                            BranchExchange(opcode);
+                        }
+                            //PSR Register
+                        else if ((opcode & 0x0F900FF0) == BIT24) {
+                            PSR_Reg(opcode);
+                        }
+                            //PSR Immediate
+                        else if ((opcode & 0x03200000) == 0x03200000) {
+                            PSR_Imm(opcode);
+                        }
+
+                            //Data Processing Register
+                        else if (((opcode & (BIT27 | BIT26 | BIT25 | BIT4))) == 0x0) {
+                            DataProc_Reg(opcode);
+                        }
+                            //Data Processing Shift
+                        else if (((opcode & (BIT27 | BIT26 | BIT25 | BIT7 | BIT4)) >> 4) == 0x1) {
+                            DataProc_Shift(opcode);
+                        } else {
+
+                            unknown_opcode(opcode);
+                        }
+                        break;
+
+                    default:
                         unknown_opcode(opcode);
-                    }
-                    break;
-
-                default:
-                    unknown_opcode(opcode);
+                }
+        }
+    }
+        /**
+         * THUMB instruction mode
+         */
+    else {
+        print_binary_THUMB(opcode);
+        if (((opcode & (BIT15 | BIT14 | BIT13)) >> 13) == 0x0) {
+            THUMB_move_shifted_register(opcode);
+        } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11)) >> 11) == 0x3) {
+            ARM_U_WORD type = (opcode & (BIT10 | BIT9)) >> 9;
+            if (type == 0x0 || type == 0x2) {
+                THUMB_add(opcode);
+            } else if (type == 0x1 || type == 0x3) {
+                THUMB_subtract(opcode);
             }
+        } else if (((opcode & (BIT15 | BIT14 | BIT13)) >> 13) == 0x1) {
+            ARM_U_WORD type = (opcode & (BIT12 | BIT11)) >> 11;
+            if (type == 0x0) {
+                THUMB_move(opcode);
+
+            } else if (type == 0x1) {
+                THUMB_cmp(opcode);
+            } else if (type == 0x2) {
+                THUMB_add_imm(opcode);
+            } else if (type == 0x3) {
+                THUMB_sub_imm(opcode);
+            }
+        }
     }
-    /*
-    if (log_level & LOG_REGISTER) {
-        print_all_registers();
-    }
-     */
 }

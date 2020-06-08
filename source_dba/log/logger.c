@@ -95,7 +95,7 @@ void print_cond_flag() {
 //TODO Update to use format specifiers
 
 void print_cpsr() {
-    printf("cpsr: [0x%08x] [%s%s%s%s%s%s%s]\n",
+    printf("cpsr: [0x%08x] [%s%s%s%s%s%s%s%s]\n",
             cpsr.status,
             cpsr.N_Sign_flag ? "N":"-",
             cpsr.Z_Zero_flag ? "Z":"-",
@@ -103,7 +103,8 @@ void print_cpsr() {
            cpsr.V_Overflow_flag ? "V":"-",
            cpsr.Q_Sticky_overflow ? "Q":"-",
            cpsr.I_IQR_disable ?"I":"-",
-            cpsr.F_FIQ_disable ? "F":"-");
+            cpsr.F_FIQ_disable ? "F":"-",
+            cpsr.T_state_bit ? "T":"-");
 }
 
 void logger(const char *tag, const char *message) {

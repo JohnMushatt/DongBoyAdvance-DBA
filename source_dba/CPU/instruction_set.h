@@ -234,6 +234,21 @@ void THUMB_move(ARM_U_WORD opcode);
 void THUMB_cmp(ARM_U_WORD opcode);
 void THUMB_add_imm(ARM_U_WORD opcode);
 void THUMB_sub_imm(ARM_U_WORD opcode);
+void THUMB_ALU(ARM_U_WORD opcode);
+void THUMB_bx(ARM_U_WORD opcode);
+void THUMB_load_pc(ARM_U_WORD opcode);
+void THUMB_store_reg(ARM_U_WORD opcode);
+void THUMB_load_reg(ARM_U_WORD opcode);
+void THUMB_store_sign_extend(ARM_U_WORD opcode);
+void THUMB_load_sign_extend(ARM_U_WORD opcode);
+void THUMB_store_imm(ARM_U_WORD opcode);
+void THUMB_load_imm(ARM_U_WORD opcode);
+void THUMB_store_hword(ARM_U_WORD opcode);
+void THUMB_load_hword(ARM_U_WORD opcode);
+void THUMB_store_sp_relative(ARM_U_WORD opcode);
+void THUMB_load_sp_relative(ARM_U_WORD opcode);
+void THUMB_push(ARM_U_WORD opcode);
+void THUMB_pop(ARM_U_WORD opcode);
 /**
  * @todo Check to see if CMP correctly sets overflow and carry flags
  * @body Make sure CMP correctly sets the properly flags when there is
@@ -252,6 +267,6 @@ void print_binary_THUMB(ARM_U_WORD opcode);
 
 char *condition_as_string(Condition_Alias cond);
 
-char *ALU_as_astring(ALU_Opcode_Alias instr);
+char *ALU_as_string(ALU_Opcode_Alias instr);
 
 #endif //DONGBOYADVANCE_INSTRUCTION_SET_H

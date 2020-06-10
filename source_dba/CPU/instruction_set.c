@@ -90,8 +90,28 @@ char *ALU_as_string(ALU_Opcode_Alias instr) {
     return alu_string;
 }
 
+char *shift_as_string(Shift_Type shift) {
+    char *shift_string = (char *) malloc(sizeof(ARM_U_BYTE) * 12);
+    switch (shift) {
+
+        case LSL:
+            strncpy(shift_string, "LSL\0", 12);
+            break;
+        case LSR:
+            strncpy(shift_string, "LSR\0", 12);
+            break;
+        case ASR:
+            strncpy(shift_string, "ASR\0", 12);
+            break;
+        case ROR:
+            strncpy(shift_string, "ROR\0", 12);
+            break;
+    }
+    return shift_string;
+}
+
 char *condition_as_string(Condition_Alias cond) {
-    char *cond_string = (char *) malloc((sizeof(ARM_U_BYTE) * 3));
+    char *cond_string = (char *) malloc(sizeof(ARM_U_BYTE) * 3);
     switch (cond) {
 
         case EQ:
@@ -898,12 +918,21 @@ void THUMB_move_shifted_register(ARM_U_WORD opcode) {
     debug_assert(check_1 == 0x0, "check_1 must be 0x0 for this instruciton");
 
     ARM_U_WORD shift_type = (opcode & (BIT12 | BIT11)) >> 11;
-    ARM_U_WORD shift_alias = get_shift_alias(shift_type);
+    Shift_Type shift_alias = get_shift_alias(shift_type);
     ARM_U_WORD offset = (opcode & (BIT10 | BIT9 | BIT8 | BIT7 | BIT6)) >> 6;
     ARM_U_WORD reg_s = (opcode & (BIT5 | BIT4 | BIT3)) >> 3;
     ARM_U_WORD reg_s_data = get_reg_data(reg_s);
     ARM_U_WORD reg_d = (opcode & (BIT2 | BIT1 | BIT0));
     ARM_U_WORD reg_d_data = get_reg_data(reg_d);
+    if (log_level & LOG_INSTRUCTION) {
+        printf("0x%08x: 0x%08x  %s,%s,%s #%d",
+               get_reg_data(15),
+               opcode,
+               shift_as_string(shift_alias),
+               register_as_string(reg_d),
+               register_as_string(reg_s),
+               offset);
+    }
     ARM_U_WORD shifted_offset = Shift(reg_s_data, offset, shift_alias);
     set_reg(reg_d, shifted_offset);
 }
@@ -918,10 +947,20 @@ void THUMB_add(ARM_U_WORD opcode) {
     ARM_U_WORD reg_s = (opcode & (BIT5 | BIT4 | BIT3)) >> 3;
     ARM_U_WORD reg_s_data = get_reg_data((reg_s));
     ARM_U_WORD reg_d = (opcode & (BIT2 | BIT1 | BIT0));
+
     /**
     * ADD {S} register
     */
     if (op == 0x0) {
+        if (log_level & LOG_INSTRUCTION) {
+            printf("0x%08x: 0x%08x  %s %s,%s,%s",
+                   get_reg_data(15),
+                   opcode,
+                   ALU_as_string(ADD),
+                   register_as_string(reg_d),
+                   register_as_string(reg_s),
+                   register_as_string(operand));
+        }
         result = reg_s_data + get_reg_data(operand);
         set_reg(reg_d, result);
     }
@@ -929,6 +968,15 @@ void THUMB_add(ARM_U_WORD opcode) {
         * ADD {S} immediate
         */
     else if (op == 0x2) {
+        if (log_level & LOG_INSTRUCTION) {
+            printf("0x%08x: 0x%08x  %s %s,%s,#%d",
+                   get_reg_data(15),
+                   opcode,
+                   ALU_as_string(ADD),
+                   register_as_string(reg_d),
+                   register_as_string(reg_s),
+                   operand);
+        }
         result = reg_s_data + operand;
         set_reg(reg_d, result);
     }
@@ -948,6 +996,15 @@ void THUMB_subtract(ARM_U_WORD opcode) {
     * SUB {S} register
     */
     if (op == 0x0) {
+        if (log_level & LOG_INSTRUCTION) {
+            printf("0x%08x: 0x%08x  %s %s,%s,%s",
+                   get_reg_data(15),
+                   opcode,
+                   ALU_as_string(SUB),
+                   register_as_string(reg_d),
+                   register_as_string(reg_s),
+                   register_as_string(operand));
+        }
         result = reg_s_data - get_reg_data(operand);
         set_reg(reg_d, result);
     }
@@ -955,49 +1012,125 @@ void THUMB_subtract(ARM_U_WORD opcode) {
         * SUB {S} immediate
         */
     else if (op == 0x2) {
-
+        if (log_level & LOG_INSTRUCTION) {
+            printf("0x%08x: 0x%08x  %s %s,%s,#%d",
+                   get_reg_data(15),
+                   opcode,
+                   ALU_as_string(SUB),
+                   register_as_string(reg_d),
+                   register_as_string(reg_s),
+                   operand);
+        }
         result = reg_s_data - operand;
         set_reg(reg_d, result);
     }
 }
 
-void THUMB_move(ARM_U_WORD opcode);
+void THUMB_move(ARM_U_WORD opcode) {
+    ARM_U_WORD check_1 = (opcode & (BIT15 | BIT14 | BIT13)) >> 13;
+    debug_assert(check_1 == 0x1, "check_1 must be 0x1 for this instruction");
 
-void THUMB_cmp(ARM_U_WORD opcode);
+    ARM_U_WORD op = (opcode & (BIT12 | BIT11)) >> 11;
+    ARM_U_WORD reg_d = (opcode & (BIT10 | BIT9 | BIT8)) >> 8;
+    ARM_U_WORD nn = (opcode & (0xff));
+    if(log_level & LOG_INSTRUCTION) {
+        printf("0x%08x: 0x%08x  %s %s,#%d",
+               get_reg_data(15),
+               opcode,
+               ALU_as_string(MOV),
+               register_as_string(reg_d),
+               nn);
+    }
+    set_reg(reg_d, nn);
 
-void THUMB_add_imm(ARM_U_WORD opcode);
 
-void THUMB_sub_imm(ARM_U_WORD opcode);
+}
 
-void THUMB_ALU(ARM_U_WORD opcode);
+void THUMB_cmp(ARM_U_WORD opcode) {
+    ARM_U_WORD check_1 = (opcode & (BIT15 | BIT14 | BIT13)) >> 13;
+    debug_assert(check_1 == 0x1, "check_1 must be 0x1 for this instruction");
 
-void THUMB_bx(ARM_U_WORD opcode);
+    ARM_U_WORD op = (opcode & (BIT12 | BIT11)) >> 11;
+    ARM_U_WORD reg_d = (opcode & (BIT10 | BIT9 | BIT8)) >> 8;
+    ARM_U_WORD nn = (opcode & (0xff));
+    if(log_level & LOG_INSTRUCTION) {
+        printf("0x%08x: 0x%08x  %s %s,#%d",
+               get_reg_data(15),
+               opcode,
+               ALU_as_string(CMP),
+               register_as_string(reg_d),
+               nn);
+    }
+    Arithmetic_CMP_Immediate(reg_d, nn);
+}
 
-void THUMB_load_pc(ARM_U_WORD opcode);
+void THUMB_add_imm(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_store_reg(ARM_U_WORD opcode);
+void THUMB_sub_imm(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_load_reg(ARM_U_WORD opcode);
+void THUMB_ALU(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_store_sign_extend(ARM_U_WORD opcode);
+void THUMB_bx(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_load_sign_extend(ARM_U_WORD opcode);
+void THUMB_load_pc(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_store_imm(ARM_U_WORD opcode);
+void THUMB_store_reg(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_load_imm(ARM_U_WORD opcode);
+void THUMB_load_reg(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_store_hword(ARM_U_WORD opcode);
+void THUMB_store_sign_extend(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_load_hword(ARM_U_WORD opcode);
+void THUMB_load_sign_extend(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_store_sp_relative(ARM_U_WORD opcode);
+void THUMB_store_imm(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_load_sp_relative(ARM_U_WORD opcode);
+void THUMB_load_imm(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_push(ARM_U_WORD opcode);
+void THUMB_store_hword(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
-void THUMB_pop(ARM_U_WORD opcode);
+void THUMB_load_hword(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
+
+void THUMB_store_sp_relative(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
+
+void THUMB_load_sp_relative(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
+
+void THUMB_push(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
+
+void THUMB_pop(ARM_U_WORD opcode) {
+    printf("Placeholder\n");
+}
 
 ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode) {
     switch (opcode) {

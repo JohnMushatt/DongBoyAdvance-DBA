@@ -269,4 +269,5 @@ char *condition_as_string(Condition_Alias cond);
 
 char *ALU_as_string(ALU_Opcode_Alias instr);
 
+char *shift_as_string(Shift_Type shift);
 #endif //DONGBOYADVANCE_INSTRUCTION_SET_H

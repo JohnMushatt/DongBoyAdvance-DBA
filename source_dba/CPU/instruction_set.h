@@ -160,6 +160,13 @@ void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WOR
 void Arithmetic_MVN_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2);
 
 /**
+ * Stack operations
+ */
+void push_reg(ARM_U_WORD reg);
+
+void pop_reg(void);
+
+/**
  * AND Instructions
  */
 //2nd operand is immediate version
@@ -224,31 +231,54 @@ void DataProc_Shift(ARM_U_WORD opcode);
 void unknown_opcode(ARM_U_WORD opcode);
 
 void undefined_opcode(ARM_U_WORD opcode);
+
 /**
  * THUMB opcodes
  */
 void THUMB_move_shifted_register(ARM_U_WORD opcode);
+
 void THUMB_add(ARM_U_WORD opcode);
+
 void THUMB_subtract(ARM_U_WORD opcode);
+
 void THUMB_move(ARM_U_WORD opcode);
+
 void THUMB_cmp(ARM_U_WORD opcode);
+
 void THUMB_add_imm(ARM_U_WORD opcode);
+
 void THUMB_sub_imm(ARM_U_WORD opcode);
+
 void THUMB_ALU(ARM_U_WORD opcode);
+
 void THUMB_bx(ARM_U_WORD opcode);
+
 void THUMB_load_pc(ARM_U_WORD opcode);
+
 void THUMB_store_reg(ARM_U_WORD opcode);
+
 void THUMB_load_reg(ARM_U_WORD opcode);
+
 void THUMB_store_sign_extend(ARM_U_WORD opcode);
+
 void THUMB_load_sign_extend(ARM_U_WORD opcode);
+
 void THUMB_store_imm(ARM_U_WORD opcode);
+
 void THUMB_load_imm(ARM_U_WORD opcode);
+
 void THUMB_store_hword(ARM_U_WORD opcode);
+
 void THUMB_load_hword(ARM_U_WORD opcode);
+
 void THUMB_store_sp_relative(ARM_U_WORD opcode);
+
 void THUMB_load_sp_relative(ARM_U_WORD opcode);
+
 void THUMB_push(ARM_U_WORD opcode);
+
 void THUMB_pop(ARM_U_WORD opcode);
+
 /**
  * @todo Check to see if CMP correctly sets overflow and carry flags
  * @body Make sure CMP correctly sets the properly flags when there is
@@ -263,6 +293,7 @@ void Arithmetic_CMP(ARM_U_WORD reg_n, ARM_U_WORD op2, bool immediate);
 void update_condition_flags(ARM_U_WORD flags);
 
 void print_binary(ARM_U_WORD opcode);
+
 void print_binary_THUMB(ARM_U_WORD opcode);
 
 char *condition_as_string(Condition_Alias cond);
@@ -270,4 +301,6 @@ char *condition_as_string(Condition_Alias cond);
 char *ALU_as_string(ALU_Opcode_Alias instr);
 
 char *shift_as_string(Shift_Type shift);
+
+char *register_list_as_string(ARM_U_WORD list);
 #endif //DONGBOYADVANCE_INSTRUCTION_SET_H

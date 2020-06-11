@@ -440,6 +440,15 @@ void Arithmetic_ANDS_Register_Shifted(ARM_U_WORD dest, ARM_U_WORD reg_d, ARM_U_W
     cpsr.C_Carry_flag = cpsr.C_Carry_flag;
 }
 
+void push_reg(ARM_U_WORD reg) {
+    ARM_U_WORD address = sp.r13.data;
+    ARM_U_WORD reg_data = get_reg_data(reg);
+    write_memory(address, reg_data, WORD);
+    set_reg(13, sp.r13.data - 4);
+}
+
+void pop(void);
+
 bool check_condition(Branch_Condition condition) {
     switch (condition) {
         case EQ:
@@ -934,7 +943,7 @@ void THUMB_move_shifted_register(ARM_U_WORD opcode) {
                offset);
     }
     ARM_U_WORD shifted_offset = Shift(reg_s_data, offset, shift_alias);
-    set_reg(reg_d, shifted_offset);
+    Arithmetic_MOV_Immediate(reg_d, shifted_offset);
 }
 
 void THUMB_add(ARM_U_WORD opcode) {
@@ -1030,10 +1039,9 @@ void THUMB_move(ARM_U_WORD opcode) {
     ARM_U_WORD check_1 = (opcode & (BIT15 | BIT14 | BIT13)) >> 13;
     debug_assert(check_1 == 0x1, "check_1 must be 0x1 for this instruction");
 
-    ARM_U_WORD op = (opcode & (BIT12 | BIT11)) >> 11;
     ARM_U_WORD reg_d = (opcode & (BIT10 | BIT9 | BIT8)) >> 8;
     ARM_U_WORD nn = (opcode & (0xff));
-    if(log_level & LOG_INSTRUCTION) {
+    if (log_level & LOG_INSTRUCTION) {
         printf("0x%08x: 0x%08x  %s %s,#%d",
                get_reg_data(15),
                opcode,
@@ -1041,7 +1049,7 @@ void THUMB_move(ARM_U_WORD opcode) {
                register_as_string(reg_d),
                nn);
     }
-    set_reg(reg_d, nn);
+    Arithmetic_MOV_Immediate(reg_d, nn);
 
 
 }
@@ -1050,10 +1058,9 @@ void THUMB_cmp(ARM_U_WORD opcode) {
     ARM_U_WORD check_1 = (opcode & (BIT15 | BIT14 | BIT13)) >> 13;
     debug_assert(check_1 == 0x1, "check_1 must be 0x1 for this instruction");
 
-    ARM_U_WORD op = (opcode & (BIT12 | BIT11)) >> 11;
     ARM_U_WORD reg_d = (opcode & (BIT10 | BIT9 | BIT8)) >> 8;
     ARM_U_WORD nn = (opcode & (0xff));
-    if(log_level & LOG_INSTRUCTION) {
+    if (log_level & LOG_INSTRUCTION) {
         printf("0x%08x: 0x%08x  %s %s,#%d",
                get_reg_data(15),
                opcode,
@@ -1065,7 +1072,22 @@ void THUMB_cmp(ARM_U_WORD opcode) {
 }
 
 void THUMB_add_imm(ARM_U_WORD opcode) {
-    printf("Placeholder\n");
+    ARM_U_WORD check_1 = (opcode & (BIT15 | BIT14 | BIT13)) >> 13;
+    debug_assert(check_1 == 0x1, "check_1 must be 0x1 for this instruction");
+
+    ARM_U_WORD op = (opcode & (BIT12 | BIT11)) >> 11;
+    ARM_U_WORD reg_d = (opcode & (BIT10 | BIT9 | BIT8)) >> 8;
+    ARM_U_WORD nn = (opcode & (0xff));
+    if (log_level & LOG_INSTRUCTION) {
+        printf("0x%08x: 0x%08x  %s %s,#%d",
+               get_reg_data(15),
+               opcode,
+               ALU_as_string(ADD),
+               register_as_string(reg_d),
+               nn);
+    }
+
+    Arithmetic_ADD_Immediate(reg_d, reg_d, nn);
 }
 
 void THUMB_sub_imm(ARM_U_WORD opcode) {
@@ -1125,7 +1147,38 @@ void THUMB_load_sp_relative(ARM_U_WORD opcode) {
 }
 
 void THUMB_push(ARM_U_WORD opcode) {
-    printf("Placeholder\n");
+    ARM_U_WORD check_1 = (opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12;
+    debug_assert(check_1 == 0xb, "Check_1 must be 0xb for this instruction");
+    bool operation = (opcode & (BIT11)) >> 11;
+    debug_assert(operation == false, "THUMB_push should only be called when bit 11 is false [PUSH]");
+    ARM_U_WORD check_2 = (opcode & (BIT10 | BIT9)) >> 9;
+    debug_assert(check_2 == 0x2, "Check_2 must be 0x2 for this instruction");
+    bool use_pc_lr = (opcode & (BIT8)) >> 8;
+
+    ARM_U_WORD Rlist = (opcode & (0xff));
+    if (log_level & LOG_INSTRUCTION) {
+        char register_list[20];
+        ARM_U_WORD index = 0;
+        for (ARM_S_BYTE reg = 0; reg < 0x8; reg += 1) {
+            if (Rlist & (1 << reg)) {
+                register_list[index] = 'r';
+                register_list[index+1] = reg+0x30;
+                register_list[index+2] = ',';
+                index+=3;
+            }
+        }
+        register_list[index-1]='\0';
+        printf("0x%08x: 0x%04x  PUSH {%s%s}\n", get_reg_data(15), opcode,register_list,use_pc_lr ? ",lr":"");
+    }
+    if(use_pc_lr) {
+        push_reg(14);
+    }
+    for (ARM_S_BYTE reg = 8; reg >= 0; reg -= 1) {
+        if (Rlist & (1 << reg)) {
+            push_reg(reg);
+        }
+    }
+    set_reg(15, get_reg_data(15)+2);
 }
 
 void THUMB_pop(ARM_U_WORD opcode) {
@@ -1203,6 +1256,7 @@ Condition_Alias get_condition_alias(ARM_U_WORD opcode) {
         case AL:
             return AL;
     }
+    return AL;
 }
 
 

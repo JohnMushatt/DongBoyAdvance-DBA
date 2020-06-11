@@ -33,6 +33,7 @@ typedef struct _process_info {
 } Process_Info;
 
 void *begin_debug(void *arg);
+void IPC_mmap(void);
 
 void init_shared_mem(void);
 

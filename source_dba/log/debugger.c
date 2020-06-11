@@ -6,8 +6,7 @@
 #include "debugger.h"
 
 /**
- * Attach to shared memory region
- * TODO: Add this function to work in a thread to handle background interaction
+ * SHM model
  */
 void init_shared_mem() {
 
@@ -30,9 +29,12 @@ void init_shared_mem() {
     while (*shmaddr != '*') {
         sleep(1);
     }
-    printf("Current debugger command: %s\n",shmaddr);
+    printf("Current debugger command: %s\n", shmaddr);
 }
 
+void IPC_mmap(void) {
+
+}
 
 void *begin_debug(void *arg) {
     Process_Info *process_info = (Process_Info *) arg;
@@ -43,7 +45,16 @@ void *begin_debug(void *arg) {
     AttachConsole(process_info->process_id);
 #endif
 #ifdef LINUX_MODE
-    init_shared_mem();
+    //init_shared_mem();
+    char command[64];
+    char *tokens;
+    fgets(command, 64, stdin);
+    while(strncmp(command,"quit",64)!=0) {
+        if(strncmp(command,"x",1)) {
+            tokens = strtok(command," ");
+
+        }
+    }
 
 #endif
 }

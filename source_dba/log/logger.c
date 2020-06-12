@@ -55,7 +55,7 @@ void print_gen_reg() {
     printf("%5s[0x%08x]","r12: ",gpr.registers[12].data);
     printf("%8s[0x%08x]", "r13: ", sp.r13.data);
     printf("%8s[0x%08x]", "r14: ", lr.r14.data);
-    printf("%8s[0x%08x]\n", "r15: ",pc.r15.data+4);
+    printf("%8s[0x%08x]\n", "r15: ",cpsr.T_state_bit ? pc.r15.data+2:pc.r15.data+4);
 
 
 }

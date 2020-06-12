@@ -637,7 +637,8 @@ void BranchExchange(ARM_U_WORD opcode) {
     }
 #endif
     if (cpsr.T_state_bit) {
-        set_pc(reg_n_data & 0xFFFFFFFE);
+        ARM_U_WORD new_addr = reg_n_data & 0xFFFFFFFE;
+        set_pc(new_addr);
     }
 
 }
@@ -1042,7 +1043,7 @@ void THUMB_move(ARM_U_WORD opcode) {
     ARM_U_WORD reg_d = (opcode & (BIT10 | BIT9 | BIT8)) >> 8;
     ARM_U_WORD nn = (opcode & (0xff));
     if (log_level & LOG_INSTRUCTION) {
-        printf("0x%08x: 0x%08x  %s %s,#%d",
+        printf("0x%08x: 0x%08x  %s %s,#%d\n",
                get_reg_data(15),
                opcode,
                ALU_as_string(MOV),
@@ -1050,7 +1051,7 @@ void THUMB_move(ARM_U_WORD opcode) {
                nn);
     }
     Arithmetic_MOV_Immediate(reg_d, nn);
-
+    set_pc(get_reg_data(15) + 2);
 
 }
 
@@ -1098,8 +1099,58 @@ void THUMB_ALU(ARM_U_WORD opcode) {
     printf("Placeholder\n");
 }
 
-void THUMB_bx(ARM_U_WORD opcode) {
-    printf("Placeholder\n");
+void THUMB_high_register(ARM_U_WORD opcode) {
+    ARM_U_WORD check_1 = (opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11 | BIT10)) >> 10;
+    debug_assert(check_1 == 0x11, "Check_1 must be 0x11 for this instruction");
+
+    ARM_U_WORD op = (opcode & (BIT9 | BIT8)) >> 8;
+    bool MSBd = (opcode & (BIT7)) >> 7;
+    bool MSBs = (opcode & (BIT6)) >> 6;
+    ARM_U_WORD reg_s = (opcode & (BIT5 | BIT4 | BIT3)) >> 3;
+    if (MSBs) {
+        reg_s += 8;
+    }
+    ARM_U_WORD reg_s_data = get_reg_data(reg_s);
+    ARM_U_WORD reg_d = (opcode & (BIT2 | BIT1 | BIT0));
+    ARM_U_WORD reg_d_data = get_reg_data(reg_d);
+    ARM_U_WORD result;
+    if (op >= 0x0 && op <= 0x2) {
+        debug_assert(MSBd || MSBs, "MSBd and MSBs cannot both be cleared for this instruction");
+    }
+    /**
+     * ADD -> Rd=Rd+ Rs
+     */
+    if (op == 0x0) {
+        result = reg_d_data + reg_s_data;
+        printf("0x%08x: 0x%08x  %s  %s,%s\n", get_reg_data(15), opcode, ALU_as_string(ADD), register_as_string(reg_d),
+               register_as_string(reg_s));
+
+        set_reg(reg_d, result);
+        set_pc(get_reg_data(15) + 2);
+
+    }
+        /**
+         * CMP
+         */
+    else if (op == 0x1) {
+        printf("0x%08x: 0x%08x  %s  %s,%s\n", get_reg_data(15), opcode, ALU_as_string(CMP), register_as_string(reg_d),
+               register_as_string(reg_s));
+        Arithmetic_CMP_Immediate(reg_d, reg_s_data);
+        set_pc(get_reg_data(15) + 2);
+
+    }
+        /**
+         * MOV OR NOP
+         */
+    else if (op == 0x2) {
+        printf("0x%08x: 0x%08x  %s  %s,%s\n", get_reg_data(15), opcode, ALU_as_string(MOV), register_as_string(reg_d),
+               register_as_string(reg_s));
+        set_reg(reg_d, reg_s_data);
+        set_pc(get_reg_data(15) + 2);
+    } else {
+
+    }
+
 }
 
 void THUMB_load_pc(ARM_U_WORD opcode) {
@@ -1162,15 +1213,15 @@ void THUMB_push(ARM_U_WORD opcode) {
         for (ARM_S_BYTE reg = 0; reg < 0x8; reg += 1) {
             if (Rlist & (1 << reg)) {
                 register_list[index] = 'r';
-                register_list[index+1] = reg+0x30;
-                register_list[index+2] = ',';
-                index+=3;
+                register_list[index + 1] = reg + 0x30;
+                register_list[index + 2] = ',';
+                index += 3;
             }
         }
-        register_list[index-1]='\0';
-        printf("0x%08x: 0x%04x  PUSH {%s%s}\n", get_reg_data(15), opcode,register_list,use_pc_lr ? ",lr":"");
+        register_list[index - 1] = '\0';
+        printf("0x%08x: 0x%04x  PUSH {%s%s}\n", get_reg_data(15), opcode, register_list, use_pc_lr ? ",lr" : "");
     }
-    if(use_pc_lr) {
+    if (use_pc_lr) {
         push_reg(14);
     }
     for (ARM_S_BYTE reg = 8; reg >= 0; reg -= 1) {
@@ -1178,13 +1229,36 @@ void THUMB_push(ARM_U_WORD opcode) {
             push_reg(reg);
         }
     }
-    set_reg(15, get_reg_data(15)+2);
+    set_reg(15, get_reg_data(15) + 2);
 }
 
 void THUMB_pop(ARM_U_WORD opcode) {
     printf("Placeholder\n");
 }
 
+void THUMB_multiple_load_store(ARM_U_WORD opcode) {
+    printf("Multiple load/store\n");
+}
+
+void THUMB_conditional_branch(ARM_U_WORD opcode) {
+    printf("conditional branch\n");
+}
+void THUMB_unconditional_branch(ARM_U_WORD opcode) {
+    printf("unconditional branch\n");
+}
+void THUMB_long_branch_link(ARM_U_WORD opcode) {
+    debug_assert((opcode&BIT0)==0x0,"Bit 0 must be 0 for this instruction");
+    ARM_U_WORD instr_upper = (opcode & (BIT15 |BIT14 |BIT13 |BIT12 |BIT11))>>11;
+    debug_assert(instr_upper==0x1e,"upper 6 bits must be 0x1e for this instruction");
+    ARM_U_WORD upper_nn = (opcode & (BIT10 |BIT9 |BIT8 | 0xff)) << 12;
+    upper_nn+=get_reg_data(15);
+    set_reg(14,upper_nn);
+    ARM_U_WORD instr_lower = read_memory(get_reg_data(15)+2,HALF_WORD);
+    ARM_U_WORD lower_nn = (instr_lower & (BIT10 |BIT9 |BIT8 | 0xff)) << 1;
+    lower_nn+= get_reg_data(14);
+    set_reg(14,lower_nn);
+    set_reg(15,get_reg_data(14));
+}
 ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode) {
     switch (opcode) {
         case AND:
@@ -1695,7 +1769,7 @@ void decode(ARM_U_WORD opcode) {
         } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11 | BIT10)) >> 10) == 0x10) {
             THUMB_ALU(opcode);
         } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11 | BIT10)) >> 10) == 0x11) {
-            THUMB_bx(opcode);
+            THUMB_high_register(opcode);
         } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11)) >> 11) == 0x9) {
             THUMB_load_pc(opcode);
         } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12) == 0x5) {
@@ -1738,6 +1812,16 @@ void decode(ARM_U_WORD opcode) {
             } else {
                 THUMB_push(opcode);
             }
+        } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12) == 0xc) {
+            THUMB_multiple_load_store(opcode);
+        } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12) == 0xd) {
+            THUMB_conditional_branch(opcode);
+        }
+        else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 |BIT11)) >> 11) == 0x1c) {
+            THUMB_unconditional_branch(opcode);
+        }
+        else  {
+            THUMB_long_branch_link(opcode);
         }
     }
 }

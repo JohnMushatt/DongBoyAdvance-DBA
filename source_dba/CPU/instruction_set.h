@@ -278,11 +278,18 @@ void THUMB_load_sp_relative(ARM_U_WORD opcode);
 void THUMB_push(ARM_U_WORD opcode);
 
 void THUMB_pop(ARM_U_WORD opcode);
+
 void THUMB_multiple_load_store(ARM_U_WORD opcode);
+
 void THUMB_conditional_branch(ARM_U_WORD opcode);
+
 void THUMB_unconditional_branch(ARM_U_WORD opcode);
+
 void THUMB_long_branch_link_upper(ARM_U_WORD opcode);
+
 void THUMB_long_branch_link_lower(ARM_U_WORD opcode);
+
+void THUMB_software_interrupt(ARM_U_WORD opcode);
 
 /**
  * @todo Check to see if CMP correctly sets overflow and carry flags
@@ -308,4 +315,5 @@ char *ALU_as_string(ALU_Opcode_Alias instr);
 char *shift_as_string(Shift_Type shift);
 
 char *register_list_as_string(ARM_U_WORD list);
+
 #endif //DONGBOYADVANCE_INSTRUCTION_SET_H

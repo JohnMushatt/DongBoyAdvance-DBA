@@ -935,7 +935,7 @@ void THUMB_move_shifted_register(ARM_U_WORD opcode) {
     ARM_U_WORD reg_d = (opcode & (BIT2 | BIT1 | BIT0));
     ARM_U_WORD reg_d_data = get_reg_data(reg_d);
     if (log_level & LOG_INSTRUCTION) {
-        printf("0x%08x: 0x%08x  %s,%s,%s #%d",
+        printf("0x%08x: 0x%08x  %s %s,%s, #%d\n",
                get_reg_data(15),
                opcode,
                shift_as_string(shift_alias),
@@ -1147,8 +1147,29 @@ void THUMB_high_register(ARM_U_WORD opcode) {
                register_as_string(reg_s));
         set_reg(reg_d, reg_s_data);
         set_pc(get_reg_data(15) + 2);
-    } else {
-
+    }
+    /**
+     * BX
+     */
+    else {
+        debug_assert(MSBd==0x0,"MSBd must not be set for bx");
+        printf("0x%08x: 0x%04x  BX %s\n",get_reg_data(15),opcode,register_as_string(reg_s));
+        ARM_U_WORD target_address = get_reg_data(reg_s);
+        if(reg_s_data & BIT0) {
+            cpsr.T_state_bit = 1;
+        }
+        else {
+            cpsr.T_state_bit=0;
+        }
+        if(target_address % 2==0) {
+            puts("Data aligned\n");
+        }
+        else {
+           puts("Data not aligned\n");
+           target_address&=0xfffffffe;
+           printf("Re-aligned target address to 0x%08x on half-word alignment",target_address);
+        }
+        set_reg(15,target_address);
     }
 
 }
@@ -1255,7 +1276,7 @@ void THUMB_long_branch_link_upper(ARM_U_WORD opcode) {
     ARM_U_WORD upper_nn = (opcode & (BIT10 | BIT9 | BIT8 | 0xff));
     printf("0x%08x: 0x%04x %s %s,%s + 4 + (0x%04x %s 12)  BL: LONG JUMP WITH LINK, NEXT INSTRUCTION HAS FULL TARGET ADDRESS\n",
            get_reg_data(15),
-           opcode,ALU_as_string(MOV),
+           opcode, ALU_as_string(MOV),
            register_as_string(14),
            register_as_string(15),
            upper_nn,
@@ -1265,27 +1286,36 @@ void THUMB_long_branch_link_upper(ARM_U_WORD opcode) {
     upper_nn += get_reg_data(15);
 
     set_reg(14, upper_nn);
-    set_reg(15,get_reg_data(15)+2);
+    set_reg(15, get_reg_data(15) + 2);
 }
+
 void THUMB_long_branch_link_lower(ARM_U_WORD opcode) {
     ARM_U_WORD lower_nn = (opcode & (BIT10 | BIT9 | BIT8 | 0xff));
     printf("%18s %s %s,%s + (0x%04x %s 1)\n",
-            "",
-            ALU_as_string(MOV),
-            register_as_string(15),
-            register_as_string(14),
-            lower_nn,
-            shift_as_string(LSL));
+           "",
+           ALU_as_string(MOV),
+           register_as_string(15),
+           register_as_string(14),
+           lower_nn,
+           shift_as_string(LSL));
     printf("0x%08x: 0x%04x %s %s,%s +2\n",
            get_reg_data(15),
-           opcode,ALU_as_string(MOV),
+           opcode, ALU_as_string(MOV),
            register_as_string(14),
            register_as_string(15));
     lower_nn = Shift(lower_nn, 1, LSL);
     //lower_nn += 2;
+    ARM_U_WORD current_pc_data = get_reg_data(15)+3;
     lower_nn += get_reg_data(14);
-    set_reg(14, get_reg_data(15)+1);
+
     set_reg(15, lower_nn);
+    set_reg(14, current_pc_data);
+
+}
+void THUMB_software_interrupt(ARM_U_WORD opcode) {
+    ARM_U_WORD nn = (opcode & (0xff));
+    printf("0x%08x: 0x%04x  swi #%d\n",get_reg_data(15),opcode,nn);
+    set_reg(15,get_reg_data(15)+2);
 }
 ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode) {
     switch (opcode) {
@@ -1840,20 +1870,26 @@ void decode(ARM_U_WORD opcode) {
             } else {
                 THUMB_push(opcode);
             }
-        } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12) == 0xc) {
+        }
+        else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12) == 0xc) {
             THUMB_multiple_load_store(opcode);
-        } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12) == 0xd) {
+        }
+        else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12) == 0xd && (((opcode & (BIT11 | BIT10 | BIT9| BIT8)) >> 8) != 0xf )) {
             THUMB_conditional_branch(opcode);
-        } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11)) >> 11) == 0x1c) {
+        }
+        else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11)) >> 11) == 0x1c) {
             THUMB_unconditional_branch(opcode);
-        } else {
-           bool branch_type = (opcode & (BIT11))>>11;
-           if(!branch_type) {
-               THUMB_long_branch_link_upper(opcode);
-           }
-           else {
-               THUMB_long_branch_link_lower(opcode);
-           }
+        }
+        else if ( ((opcode & 0xff00) >> 8) == 0xdf) {
+            THUMB_software_interrupt(opcode);
+        }
+        else {
+            bool branch_type = (opcode & (BIT11)) >> 11;
+            if (!branch_type) {
+                THUMB_long_branch_link_upper(opcode);
+            } else {
+                THUMB_long_branch_link_lower(opcode);
+            }
         }
     }
 }

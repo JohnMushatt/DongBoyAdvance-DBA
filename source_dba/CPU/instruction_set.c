@@ -1243,21 +1243,49 @@ void THUMB_multiple_load_store(ARM_U_WORD opcode) {
 void THUMB_conditional_branch(ARM_U_WORD opcode) {
     printf("conditional branch\n");
 }
+
 void THUMB_unconditional_branch(ARM_U_WORD opcode) {
     printf("unconditional branch\n");
 }
-void THUMB_long_branch_link(ARM_U_WORD opcode) {
-    debug_assert((opcode&BIT0)==0x0,"Bit 0 must be 0 for this instruction");
-    ARM_U_WORD instr_upper = (opcode & (BIT15 |BIT14 |BIT13 |BIT12 |BIT11))>>11;
-    debug_assert(instr_upper==0x1e,"upper 6 bits must be 0x1e for this instruction");
-    ARM_U_WORD upper_nn = (opcode & (BIT10 |BIT9 |BIT8 | 0xff)) << 12;
-    upper_nn+=get_reg_data(15);
-    set_reg(14,upper_nn);
-    ARM_U_WORD instr_lower = read_memory(get_reg_data(15)+2,HALF_WORD);
-    ARM_U_WORD lower_nn = (instr_lower & (BIT10 |BIT9 |BIT8 | 0xff)) << 1;
-    lower_nn+= get_reg_data(14);
-    set_reg(14,lower_nn);
-    set_reg(15,get_reg_data(14));
+
+void THUMB_long_branch_link_upper(ARM_U_WORD opcode) {
+    debug_assert((opcode & BIT0) == 0x0, "Bit 0 must be 0 for this instruction");
+    ARM_U_WORD instr_upper = (opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11)) >> 11;
+    debug_assert(instr_upper == 0x1e, "upper 6 bits must be 0x1e for this instruction");
+    ARM_U_WORD upper_nn = (opcode & (BIT10 | BIT9 | BIT8 | 0xff));
+    printf("0x%08x: 0x%04x %s %s,%s + 4 + (0x%04x %s 12)  BL: LONG JUMP WITH LINK, NEXT INSTRUCTION HAS FULL TARGET ADDRESS\n",
+           get_reg_data(15),
+           opcode,ALU_as_string(MOV),
+           register_as_string(14),
+           register_as_string(15),
+           upper_nn,
+           shift_as_string(LSL));
+    upper_nn = Shift(upper_nn, 12, LSL);
+    upper_nn += 4;
+    upper_nn += get_reg_data(15);
+
+    set_reg(14, upper_nn);
+    set_reg(15,get_reg_data(15)+2);
+}
+void THUMB_long_branch_link_lower(ARM_U_WORD opcode) {
+    ARM_U_WORD lower_nn = (opcode & (BIT10 | BIT9 | BIT8 | 0xff));
+    printf("%18s %s %s,%s + (0x%04x %s 1)\n",
+            "",
+            ALU_as_string(MOV),
+            register_as_string(15),
+            register_as_string(14),
+            lower_nn,
+            shift_as_string(LSL));
+    printf("0x%08x: 0x%04x %s %s,%s +2\n",
+           get_reg_data(15),
+           opcode,ALU_as_string(MOV),
+           register_as_string(14),
+           register_as_string(15));
+    lower_nn = Shift(lower_nn, 1, LSL);
+    //lower_nn += 2;
+    lower_nn += get_reg_data(14);
+    set_reg(14, get_reg_data(15)+1);
+    set_reg(15, lower_nn);
 }
 ALU_Opcode_Alias get_ALU_opcode_alias(ARM_U_WORD opcode) {
     switch (opcode) {
@@ -1539,7 +1567,7 @@ void DataProc_Reg(ARM_U_WORD opcode) {
         }
         ARM_U_WORD shift_amount = (opcode & (BIT11 | BIT10 | BIT9 | BIT8 | BIT7));
         ARM_U_WORD data_with_offset = Shift(reg_m_data, shift_amount,
-                                            shift_alias); //TODO Implement LSL/LSR/ASR/ROR shifting
+                                            shift_alias);
         switch (instr_alias) {
 
             case AND:
@@ -1816,12 +1844,16 @@ void decode(ARM_U_WORD opcode) {
             THUMB_multiple_load_store(opcode);
         } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12)) >> 12) == 0xd) {
             THUMB_conditional_branch(opcode);
-        }
-        else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 |BIT11)) >> 11) == 0x1c) {
+        } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11)) >> 11) == 0x1c) {
             THUMB_unconditional_branch(opcode);
-        }
-        else  {
-            THUMB_long_branch_link(opcode);
+        } else {
+           bool branch_type = (opcode & (BIT11))>>11;
+           if(!branch_type) {
+               THUMB_long_branch_link_upper(opcode);
+           }
+           else {
+               THUMB_long_branch_link_lower(opcode);
+           }
         }
     }
 }

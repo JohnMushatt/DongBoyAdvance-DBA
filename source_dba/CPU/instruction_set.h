@@ -281,7 +281,9 @@ void THUMB_pop(ARM_U_WORD opcode);
 void THUMB_multiple_load_store(ARM_U_WORD opcode);
 void THUMB_conditional_branch(ARM_U_WORD opcode);
 void THUMB_unconditional_branch(ARM_U_WORD opcode);
-void THUMB_long_branch_link(ARM_U_WORD opcode);
+void THUMB_long_branch_link_upper(ARM_U_WORD opcode);
+void THUMB_long_branch_link_lower(ARM_U_WORD opcode);
+
 /**
  * @todo Check to see if CMP correctly sets overflow and carry flags
  * @body Make sure CMP correctly sets the properly flags when there is

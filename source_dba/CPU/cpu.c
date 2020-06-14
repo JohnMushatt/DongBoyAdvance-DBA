@@ -211,6 +211,9 @@ void write_memory(ARM_U_WORD address, ARM_U_WORD val, Write_Mode mode) {
             MEMORY[address] = val;
             break;
         case HALF_WORD:
+            MEMORY[address] = (val & 0xff);
+            val>>=8;
+            MEMORY[address+1] = (val & 0xff);
             break;
         case WORD:
 

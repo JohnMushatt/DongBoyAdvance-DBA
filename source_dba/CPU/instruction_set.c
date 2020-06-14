@@ -244,6 +244,10 @@ void Arithmetic_ORR_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WOR
 
 void Arithmetic_MOV_Immediate(ARM_U_WORD reg_d, ARM_U_WORD Op2) {
     set_reg(reg_d, Op2);
+    if(get_reg_data(reg_d)==0) {
+        cpsr.Z_Zero_flag=1;
+    }
+
 }
 
 void Arithmetic_BIC_Immediate(ARM_U_WORD reg_d, ARM_U_WORD reg_n_data, ARM_U_WORD Op2) {
@@ -964,7 +968,7 @@ void THUMB_add(ARM_U_WORD opcode) {
     */
     if (op == 0x0) {
         if (log_level & LOG_INSTRUCTION) {
-            printf("0x%08x: 0x%08x  %s %s,%s,%s",
+            printf("0x%08x: 0x%08x  %s %s,%s,%s\n",
                    get_reg_data(15),
                    opcode,
                    ALU_as_string(ADD),
@@ -980,7 +984,7 @@ void THUMB_add(ARM_U_WORD opcode) {
         */
     else if (op == 0x2) {
         if (log_level & LOG_INSTRUCTION) {
-            printf("0x%08x: 0x%08x  %s %s,%s,#%d",
+            printf("0x%08x: 0x%08x  %s %s,%s,#%d\n",
                    get_reg_data(15),
                    opcode,
                    ALU_as_string(ADD),
@@ -991,6 +995,7 @@ void THUMB_add(ARM_U_WORD opcode) {
         result = reg_s_data + operand;
         set_reg(reg_d, result);
     }
+    set_reg(15,get_reg_data(15)+2);
 }
 
 void THUMB_subtract(ARM_U_WORD opcode) {
@@ -1111,8 +1116,12 @@ void THUMB_high_register(ARM_U_WORD opcode) {
     if (MSBs) {
         reg_s += 8;
     }
+
     ARM_U_WORD reg_s_data = get_reg_data(reg_s);
     ARM_U_WORD reg_d = (opcode & (BIT2 | BIT1 | BIT0));
+    if(MSBd) {
+        reg_d+=8;
+    }
     ARM_U_WORD reg_d_data = get_reg_data(reg_d);
     ARM_U_WORD result;
     if (op >= 0x0 && op <= 0x2) {
@@ -1146,7 +1155,7 @@ void THUMB_high_register(ARM_U_WORD opcode) {
     else if (op == 0x2) {
         printf("0x%08x: 0x%08x  %s  %s,%s\n", get_reg_data(15), opcode, ALU_as_string(MOV), register_as_string(reg_d),
                register_as_string(reg_s));
-        set_reg(reg_d, reg_s_data);
+        Arithmetic_MOV_Immediate(reg_d,reg_s_data);
         set_pc(get_reg_data(15) + 2);
     }
         /**
@@ -1178,16 +1187,16 @@ void THUMB_load_pc(ARM_U_WORD opcode) {
     debug_assert(check_1 == 0x9, "Bits 15-11 must be 0x9");
 
     ARM_U_WORD reg_d = (opcode & (BIT10 | BIT9 | BIT8)) >> 8;
-    ARM_U_WORD u8_off = (opcode & 0xff)<<2;
+    ARM_U_WORD u8_off = (opcode & 0xff) << 2;
 
-    ARM_U_WORD pc_data =(get_reg_data(15)+4) & (~2);
+    ARM_U_WORD pc_data = (get_reg_data(15) + 4) & (~2);
     ARM_U_WORD load_addr = pc_data + u8_off;
 
 
-    printf("0x%08x: 0x%04x LDR %s, [0x%08x]\n",get_reg_data(15),opcode,register_as_string(reg_d),load_addr);
-    ARM_U_WORD retval = read_memory(load_addr,WORD);
-    set_reg(reg_d,retval);
-    set_reg(15,get_reg_data(15)+2);
+    printf("0x%08x: 0x%04x LDR %s, [0x%08x]\n", get_reg_data(15), opcode, register_as_string(reg_d), load_addr);
+    ARM_U_WORD retval = read_memory(load_addr, WORD);
+    set_reg(reg_d, retval);
+    set_reg(15, get_reg_data(15) + 2);
 }
 
 void THUMB_store_reg(ARM_U_WORD opcode) {
@@ -1215,7 +1224,29 @@ void THUMB_load_imm(ARM_U_WORD opcode) {
 }
 
 void THUMB_store_hword(ARM_U_WORD opcode) {
-    printf("Placeholder\n");
+    ARM_U_WORD check_1 = (opcode & (0xf <<12))>>12;
+    debug_assert(check_1==0x8,"Check_1 must rbe 0x8 for this instruction");
+    bool op = (opcode & BIT11) >>11;
+
+    ARM_U_WORD nn = (opcode & (BIT10 |BIT9 |BIT8 |BIT7 |BIT6))>>6;
+    ARM_U_WORD reg_b = (opcode & (BIT5 |BIT4 |BIT3))>>3;
+    ARM_U_WORD reg_d = (opcode & (BIT2 |BIT1 |BIT0));
+    ARM_U_WORD reg_d_data = get_reg_data(reg_d);
+    ARM_U_WORD target_address = get_reg_data(reg_b)+nn;
+    /**
+     * LDRH
+     */
+    if(op) {
+        printf("0x%08x: 0x%08x LDRH %s,[%s, #%d]\n",get_reg_data(15),opcode,register_as_string(reg_d),register_as_string(reg_b),nn);
+        ARM_U_WORD data = read_memory(target_address,HALF_WORD);
+        set_reg(reg_d,data);
+    }
+    else {
+        printf("0x%08x: 0x%08x STRH %s,[%s, #%d]\n",get_reg_data(15),opcode,register_as_string(reg_d),register_as_string(reg_b),nn);
+
+        write_memory(target_address,get_reg_data(reg_d),HALF_WORD);
+    }
+    set_reg(15,get_reg_data(15)+2);
 }
 
 void THUMB_load_hword(ARM_U_WORD opcode) {
@@ -1817,7 +1848,7 @@ void decode(ARM_U_WORD opcode) {
          */
     else {
         print_binary_THUMB(opcode);
-        if (((opcode & (BIT15 | BIT14 | BIT13)) >> 13) == 0x0) {
+        if (((opcode & (BIT15 | BIT14 | BIT13)) >> 13) == 0x0 && (((opcode & (BIT12 | BIT11)) >>11) !=0x3)) {
             THUMB_move_shifted_register(opcode);
         } else if (((opcode & (BIT15 | BIT14 | BIT13 | BIT12 | BIT11)) >> 11) == 0x3) {
             ARM_U_WORD type = (opcode & (BIT10 | BIT9)) >> 9;

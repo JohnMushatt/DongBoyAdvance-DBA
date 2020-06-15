@@ -1102,7 +1102,84 @@ void THUMB_sub_imm(ARM_U_WORD opcode) {
 }
 
 void THUMB_ALU(ARM_U_WORD opcode) {
-    printf("Placeholder\n");
+    ARM_U_WORD check_1 = (opcode & (0xf000 | BIT11 | BIT10)) >> 10;
+    debug_assert(check_1 == 0x10, "Check_1 must be 0x10");
+
+    ARM_U_WORD op_code = (opcode & (BIT9 | BIT8 | BIT7 | BIT6)) >> 6;
+
+    ALU_Opcode_Alias alu_alias = get_ALU_opcode_alias(op_code);
+    ARM_U_WORD reg_s = (opcode & (BIT5 | BIT4 | BIT3)) >> 3;
+    ARM_U_WORD reg_s_data = get_reg_data(reg_s);
+    ARM_U_WORD reg_d = (opcode & (BIT2 | BIT1 | BIT0));
+    ARM_U_WORD reg_d_data = get_reg_data(reg_d);
+    ARM_U_WORD result = 0;
+    printf("0x%08x: 0x%08x %s %s,%s\n",
+            get_reg_data(15),
+            opcode,
+            ALU_as_string(alu_alias),
+            register_as_string(reg_d),
+            register_as_string(reg_s));
+    switch (alu_alias) {
+        case 0x0:
+            Arithmetic_AND_Immediate(reg_d, reg_d_data, reg_s_data);
+            break;
+        case 0x1:
+            Arithmetic_EOR_Immediate(reg_d, reg_d_data, reg_s_data);
+            break;
+        case 0x2:
+            reg_s_data &= 0xff;
+            result = Shift(reg_d_data, reg_s_data, LSL);
+            set_reg(reg_d, result);
+            break;
+        case 0x3:
+            reg_s_data &= 0xff;
+            result = Shift(reg_d_data, reg_s_data, LSR);
+            set_reg(reg_d, result);
+            break;
+        case 0x4:
+            reg_s_data &= 0xff;
+            result = Shift(reg_d_data,reg_s_data,ASR);
+            set_reg(reg_d,result);
+            break;
+        case 0x5:
+            Arithmetic_ADC_Immediate(reg_d,reg_d_data,reg_s_data);
+            break;
+        case 0x6:
+            Arithmetic_SBC_Immediate(reg_d,reg_d_data,reg_s_data);
+            break;
+        case 0x7:
+            reg_s_data &= 0xff;
+            result = Shift(reg_d_data,reg_s_data,ROR);
+            set_reg(reg_d,result);
+            break;
+        case 0x8:
+            Arithmetic_TST_Immediate(reg_d,reg_s_data);
+            break;
+        case 0x9:
+            result = 0 - reg_s_data;
+            set_reg(reg_d,result);
+            break;
+        case 0xa:
+            Arithmetic_CMP_Immediate(reg_d,reg_s_data);
+            break;
+        case 0xb:
+            Arithmetic_CMN_Immediate(reg_d,reg_s_data);
+            break;
+        case 0xc:
+            Arithmetic_ORR_Immediate(reg_d,reg_d_data,reg_s_data);
+            break;
+        case 0xd:
+            result = reg_d_data * reg_s_data;
+            set_reg(reg_d,result);
+            break;
+        case 0xe:
+            Arithmetic_BIC_Immediate(reg_d,reg_d_data,reg_s_data);
+            break;
+        case 0xf:
+            Arithmetic_MVN_Immediate(reg_d,reg_s_data);
+            break;
+    }
+    set_reg(15,get_reg_data(15)+2);
 }
 
 void THUMB_high_register(ARM_U_WORD opcode) {
@@ -1237,7 +1314,7 @@ void THUMB_store_imm(ARM_U_WORD opcode) {
                register_as_string(reg_d),
                register_as_string(reg_b),
                u5_off);
-        write_memory(target_address,get_reg_data(reg_d),WORD);
+        write_memory(target_address, get_reg_data(reg_d), WORD);
     }
         /**
          * Load byte
@@ -1249,9 +1326,9 @@ void THUMB_store_imm(ARM_U_WORD opcode) {
                register_as_string(reg_d),
                register_as_string(reg_b),
                u5_off);
-        write_memory(target_address,get_reg_data(reg_d),BYTE);
+        write_memory(target_address, get_reg_data(reg_d), BYTE);
     }
-    set_reg(15,get_reg_data(15)+2);
+    set_reg(15, get_reg_data(15) + 2);
 
 }
 
@@ -1272,13 +1349,13 @@ void THUMB_load_imm(ARM_U_WORD opcode) {
      */
     if (op == 0x1) {
         printf("0x%08x: 0x%08x LDR %s, [%s, #%d]\n",
-                get_reg_data(15),
-                opcode,
-                register_as_string(reg_d),
-                register_as_string(reg_b),
-                u5_off);
+               get_reg_data(15),
+               opcode,
+               register_as_string(reg_d),
+               register_as_string(reg_b),
+               u5_off);
         ARM_U_WORD data_word = read_memory(target_address, WORD);
-        set_reg(reg_d,data_word);
+        set_reg(reg_d, data_word);
 
     }
         /**
@@ -1292,9 +1369,9 @@ void THUMB_load_imm(ARM_U_WORD opcode) {
                register_as_string(reg_b),
                u5_off);
         ARM_U_WORD data_byte = read_memory(target_address, BYTE);
-        set_reg(reg_d,data_byte);
+        set_reg(reg_d, data_byte);
     }
-    set_reg(15,get_reg_data(15)+2);
+    set_reg(15, get_reg_data(15) + 2);
 }
 
 void THUMB_store_hword(ARM_U_WORD opcode) {

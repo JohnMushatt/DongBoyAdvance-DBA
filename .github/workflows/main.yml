@@ -44,11 +44,3 @@ jobs:
           keywords: '["@Feature","@Improvement"]'
           labels: '["Feature/Improvement"]'
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-  Opcode:
-    runs-on: windows-latest
-    steps:
-      - uses: Naturalclar/issue-action@v1.0.0
-        with:
-          keywords: '["@Opcode"]'
-          labels: '["Opcodes"]'
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
